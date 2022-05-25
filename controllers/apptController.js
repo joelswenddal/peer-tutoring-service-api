@@ -157,7 +157,7 @@ function errorResponseSwitch(code, res) {
             break;
 
         case '406':
-            res.status(406).json({ 'Error': 'Incompatible response type request. Set Accept header to application/json or text/html' })
+            res.status(406).json({ 'Error': 'Incompatible response type request. Set Accept header to application/json' })
 
         case '415-UnsupportedType':
             res.status(415).json({ 'Error': "Server only accepts Content-Type : application/json; Request body must be formatted as JSON" });
@@ -352,6 +352,66 @@ router.get('/', verifyJwtMiddlewareNoError, async (req, res, next) => {
         errorResponseSwitch(err.statusCode, res);
     }
 });
+
+/* -------------------- View an appointment ----------------------------------------------*/
+
+/* -------------------- GET /appointments/:appt_id ---------------------------------------*/
+
+router.get('/:appt_id', verifyJwtMiddleware, async (req, res, next) => {
+
+    try {
+
+        let tutorid = req.body.tutor;
+
+        //check if req has Json content type
+        //
+        if (req.header("Accept") !== 'application/json') {
+
+            console.log(`Response header is ${req.header("Accept")}`);
+            const err = generateError('406', 'GET controller');
+            throw err;
+        }
+
+        let entityRecord = await getApptModel().readAppt(req.params.appt_id)
+            .catch(err => {
+                console.error('Error when waiting for promise from readAppt');
+                next(err);
+            })
+
+        if (!entityRecord) {
+            let err = generateError('404', 'GET controller');
+            throw err;
+
+        } else {
+
+            if (entityRecord.tutor === tutorid) {
+
+                entityRecord.self = `${urlString}/appointments/${entityRecord.id}`;
+
+                res.format({
+                    json: function () {
+                        res.status(200).send(entityRecord);
+                    }
+                })
+
+            } else {
+
+                let err = generateError('403-NotTutor', 'DELETE controller');
+                throw err;
+            }
+        }
+
+    } catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        }
+        errorResponseSwitch(err.statusCode, res);
+        console.error(`${err.statusCode} error caught in appts Controller`);
+    }
+})
 
 
 /* -------------------- Delete an appointment --------------------------------------------- */

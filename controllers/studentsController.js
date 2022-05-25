@@ -40,6 +40,16 @@ function getStudentModel() {
     return require('../models/studentModel');
 };
 
+function generateError(codeString, functionName) {
+
+
+    let err = new Error(codeString);
+    console.log(`ERROR: ${codeString} thrown in ${functionName}`);
+    err.statusCode = codeString;
+
+    return err;
+};
+
 
 function errorResponseSwitch(code, res) {
 
@@ -72,11 +82,11 @@ function errorResponseSwitch(code, res) {
             res.status(403).json({ 'Error': 'There is aleady a boat with this name' });
 
         case '404':
-            res.status(404).json({ 'Error': "No appointment with this id exists" });
+            res.status(404).json({ 'Error': "No student with this id exists" });
             break;
 
         case '406':
-            res.status(406).json({ 'Error': 'Incompatible response type request. Set Accept header to application/json or text/html' })
+            res.status(406).json({ 'Error': 'Incompatible response type request. Set Accept header to application/json' })
 
         case '415-UnsupportedType':
             res.status(415).json({ 'Error': "Server only accepts Content-Type : application/json; Request body must be formatted as JSON" });
@@ -168,35 +178,6 @@ router.get('/', async (req, res, next) => {
 
         let results = [];
 
-
-        /*
-        if (req.body.tutor) {
-
-            let tutorid = req.body.tutor;
-
-            //get all the appointments from the db
-            let allAppts = await getApptModel().listAppts();
-
-            for (let appt of allAppts.appts) {
-                if (appt.tutor === tutorid) {
-                    appt.self = `${urlString}/appointments/${appt.id}`
-                    results.push(appt);
-                }
-            }
-        }
-        //FOR DEVELOPMENT ONLY - WILL RETURN ALL APPT RECORDS WITHOUT AUTHENTICATION
-        else {
-            //get all the appointments
-            let allAppts = await getApptModel().listAppts();
-
-            for (let appt of allAppts.appts) {
-                appt.self = `${urlString}/appointments/${appt.id}`
-                results.push(appt);
-
-            }
-        }
-        */
-
         //get all the appointments
         let allStudents = await getStudentModel().listStudents();
 
@@ -216,6 +197,56 @@ router.get('/', async (req, res, next) => {
         errorResponseSwitch(err.statusCode, res);
     }
 });
+
+
+/* -------------------- View a student ----------------------------------------------*/
+
+/* -------------------- GET /students/:student_id ---------------------------------------*/
+
+router.get('/:student_id', async (req, res, next) => {
+
+    try {
+
+        //check if req has Json content type
+        //
+        if (req.header("Accept") !== 'application/json') {
+
+            console.log(`Response header is ${req.header("Accept")}`);
+            const err = generateError('406', 'GET controller');
+            throw err;
+        }
+
+        let entityRecord = await getStudentModel().readStudent(req.params.student_id)
+            .catch(err => {
+                console.error('Error when waiting for promise from readStudent');
+                next(err);
+            })
+
+        if (!entityRecord) {
+            let err = generateError('404', 'GET controller');
+            throw err;
+
+        } else {
+            entityRecord.self = `${urlString}/students/${entityRecord.id}`;
+
+            res.format({
+                json: function () {
+                    res.status(200).send(entityRecord);
+                }
+            })
+        }
+
+    } catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        }
+        errorResponseSwitch(err.statusCode, res);
+        console.error(`${err.statusCode} error caught in students Controller`);
+    }
+})
 
 /* -------------------- Delete a Student record --------------------------------------------- */
 
