@@ -1,5 +1,5 @@
 {
-  "name": "cs493_final_peertutoringapp",
+  "name": "peer2peer-api",
   "version": "1.0.0",
   "description": "OAuth2",
   "engines": {
@@ -22,5 +22,13 @@
     "hbs": "^4.2.0",
     "jsonwebtoken": "^8.5.1",
     "nodemon": "^2.0.15"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joelswenddal/final-peertutor-493.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joelswenddal/final-peertutor-493/issues"
+  },
+  "homepage": "https://github.com/joelswenddal/final-peertutor-493#readme"
 }

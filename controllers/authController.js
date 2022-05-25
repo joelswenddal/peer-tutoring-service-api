@@ -42,8 +42,8 @@ router.use((req, res, next) => {
     next();
 });
 
-const projectId = 'hw-swenddaj-0422pm';
-const urlString = 'https://hw7-swenddaj-0422pm.uc.r.appspot.com'
+const projectId = process.env.PROJECT_ID;
+const urlString = 'https://final-peertutor-1215pm.uc.r.appspot.com'
 
 
 
@@ -229,7 +229,6 @@ router.get('/', async (req, res, next) => {
 
             userRecord.id_token = id_token;
 
-
             //translate the JWT (id_token) and get the sub property
             //save the sub property as sub in the User Record
             userRecord.sub = await verify(id_token, client);
@@ -270,8 +269,8 @@ router.get('/', async (req, res, next) => {
             res.render('userInfo', {
                 //firstName: user_data.names[1].givenName,
                 //familyName: user_data.names[1].familyName,
-                idToken: id_token
-                //sub: userRecord.sub
+                idToken: id_token,
+                userID: userRecord.sub
             });
 
 

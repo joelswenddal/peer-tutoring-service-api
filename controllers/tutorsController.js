@@ -9,7 +9,7 @@
 
 const express = require('express');
 const res = require('express/lib/response');
-//const { OAuth2Client } = require('google-auth-library');
+const { OAuth2Client } = require('google-auth-library');
 
 
 const router = express.Router();
@@ -25,18 +25,18 @@ router.use((req, res, next) => {
     next();
 });
 
-const BOAT = "Boat";
+
 const projectId = 'final-peertutor-1215pm';
 const urlString = 'https://final-peertutor-1215pm.uc.r.appspot.com';
 const CLIENT_APP_ID = process.env.CLIENT_APP_ID;
 
-
+const client = new OAuth2Client(CLIENT_APP_ID);
 
 
 /********************* Helper Functions ****************************/
 
-function getBoatModel() {
-    return require('../models/boatsModel');
+function getApptModel() {
+    return require('../models/apptModel');
 };
 
 function generateError(codeString, functionName) {
@@ -48,6 +48,43 @@ function generateError(codeString, functionName) {
 
     return err;
 };
+
+const verifyJwtMiddleware = async function (req, res, next) {
+
+    try {
+
+        if (!req.headers.authorization) {
+            const error = generateError('401-Authentication', 'Verify JWT middleware 1');
+            throw error;
+        }
+
+        let token = req.headers['authorization'];
+        token = token.replace(/^Bearer\s+/, "");
+
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: CLIENT_APP_ID,
+        })
+            .catch((err) => {
+                const error = generateError('401-Authentication', 'Verify JWT middleware 2');
+                throw error;
+            })
+
+        const payload = ticket.getPayload();
+        const userid = payload['sub'];
+
+        req.body.tutor = userid;
+        next();
+
+    } catch (err) {
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+        }
+
+        errorResponseSwitch(err.statusCode, res);
+    }
+}
 
 
 function errorResponseSwitch(code, res) {
@@ -101,26 +138,27 @@ function errorResponseSwitch(code, res) {
 
 
 
-/* -------------------- Get an Owner's Boats ----------------------------------- */
+/* -------------------- Get an Tutor's Appointments ----------------------------------- */
 
-/* -------------------- GET /owners/:owner_id/boats ---------------------------------------*/
+/* -------------------- GET /tutors/:tutor_id/appointments ---------------------------------------*/
 
-router.get('/:owner_id/boats', async (req, res, next) => {
+router.get('/:tutor_id/appointments', verifyJwtMiddleware, async (req, res, next) => {
 
     try {
 
-        const ownerId = req.params.owner_id;
+        const tutorId = req.params.tutor_id;
         let results = [];
 
-        let allBoats = await getBoatModel().getBoats()
+        let allAppts = await getApptModel().listAppts()
             .catch((err) => {
-                const error = generateError('500', 'Server error getting Boat results from db');
+                const error = generateError('500', 'Server error getting Appt results from db');
                 throw error;
             })
 
-        for (let boat of allBoats.boats) {
-            if (boat.public === true && boat.owner === ownerId) {
-                results.push(boat);
+        for (let appt of allAppts.appts) {
+            if (appt.tutor === tutorId) {
+                appt.self = `${urlString}/appointments/${appt.id}`;
+                results.push(appt);
             }
         }
 
@@ -133,7 +171,7 @@ router.get('/:owner_id/boats', async (req, res, next) => {
         }
 
         errorResponseSwitch(err.statusCode, res);
-        console.error(`${err.statusCode} error caught in owners Controller`);
+        console.error(`${err.statusCode} error caught in tutors Controller`);
     }
 
 })
