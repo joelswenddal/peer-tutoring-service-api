@@ -42,7 +42,6 @@ function getStudentModel() {
 
 function generateError(codeString, functionName) {
 
-
     let err = new Error(codeString);
     console.log(`ERROR: ${codeString} thrown in ${functionName}`);
     err.statusCode = codeString;
@@ -64,10 +63,10 @@ function errorResponseSwitch(code, res) {
             break;
 
         case '400-InvalidInput':
-            res.status(400).json({ 'Error': 'Input values for one of the boat attributes is invalid' });
+            res.status(400).json({ 'Error': 'Input values for one of the student attributes is invalid' });
 
         case '400-BadAttribute':
-            res.status(400).json({ 'Error': 'The request object has at least one attribute that is not allowed in a boat record' });
+            res.status(400).json({ 'Error': 'The request object has at least one attribute that is not allowed in a student record' });
 
         case '401-Authentication':
             res.status(401).json({ 'Error': 'Authentication Error - A valid JWT must be in the Authorization header. Check that your JWT has not expired.' });
@@ -79,7 +78,7 @@ function errorResponseSwitch(code, res) {
             res.status(403).json({ 'Error': 'You cannot delete an appointment if you are not its associated tutor' });
 
         case '403-Uniqueness':
-            res.status(403).json({ 'Error': 'There is aleady a boat with this name' });
+            res.status(403).json({ 'Error': 'There is aleady a student with this name' });
 
         case '404':
             res.status(404).json({ 'Error': "No student with this id exists" });
@@ -98,21 +97,31 @@ function errorResponseSwitch(code, res) {
     }
 
 };
+//checks if an email string is a (basically) valid email format
+function emailIsValid(email) {
+    return /\S+@\S+\.\S+/.test(email);
+}
+
+
+
 //checks that input values meet criteria
 function validInputCheck(data) {
 
-    if (data.name) {
-        if (typeof data.name !== 'string' || data.name.length > 40) {
+    if (data.firstName) {
+        if (typeof data.firstName !== 'string' || data.firstName.length > 40) {
             return false;
         }
     }
-    if (data.type) {
-        if (typeof data.type !== 'string' || data.type.length > 40) {
+    if (data.lastName) {
+        if (typeof data.lastName !== 'string' || data.lastName.length > 40) {
             return false;
         }
     }
-    if (data.length) {
-        if (typeof data.length !== 'number') {
+    if (data.email) {
+        if (typeof data.email !== 'string') {
+            return false;
+        }
+        if (!emailIsValid(data.email)) {
             return false;
         }
     }
@@ -157,14 +166,17 @@ router.post('/', async (req, res, next) => {
 
             err.statusCode = '500';
 
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
         }
 
-        errorResponseSwitch(err.statusCode, res);
+        console.error(`${err.statusCode} error caught in students Controller block 1`);
 
-        console.error(`${err.statusCode} error caught in studentsController block 2`);
-
+        next(err);
     }
-});
+
+})
 
 
 
@@ -193,8 +205,15 @@ router.get('/', async (req, res, next) => {
         if (!err.statusCode) {
 
             err.statusCode = '500';
+
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
         }
-        errorResponseSwitch(err.statusCode, res);
+
+        console.error(`${err.statusCode} error caught in students Controller`);
+
+        next(err);
     }
 });
 
@@ -242,10 +261,161 @@ router.get('/:student_id', async (req, res, next) => {
 
             err.statusCode = '500';
 
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
         }
-        errorResponseSwitch(err.statusCode, res);
+
         console.error(`${err.statusCode} error caught in students Controller`);
+
+        next(err);
     }
+})
+
+/* -------------------- Update whole student record ------------------------------- */
+/*
+/* -------------------- PUT /students/:student_id  -----------------------------------*/
+
+//if no student_id is provided
+router.put('/', (req, res) => {
+
+    res.status(405).send({ 'Error': 'This operation is not supported on a list of student records. Use a student_id' })
+
+})
+
+//start with validity check
+router.put('/:student_id', (req, res, next) => {
+
+    try {
+
+        const data = req.body;
+        let contype = req.headers['content-type'];
+        let props = ["firstName", "lastName", "email"];
+
+        //check if req has Json content type
+        //
+        if (!contype || req.header('Content-Type') !== 'application/json') {
+
+            const err = generateError('415-UnsupportedType', 'PUT controller');
+            throw err;
+        }
+
+        //check that all required attributes are included
+
+        if (data.firstName && data.lastName && data.email) {
+            /*
+            //check uniqueness constraint
+            let allBoats = await getBoatModel().getBoats();
+            //if any other boats (other than the current boat) have the same name
+            for (let boat of allBoats.boats) {
+                if (boat.name === data.name && boat.id !== req.params.boat_id) {
+                    const err = generateError('403', 'PUT controller');
+                    throw err;
+                }
+            }
+            */
+            //check that all properties in the data are allowed
+            for (const key in data) {
+                if (!props.includes(key)) {
+                    let err = generateError('400-BadAttribute', 'PUT controller');
+                    throw err;
+                }
+            }
+
+            //check that input is valid for all categories
+            let valid = validInputCheck(data);
+
+            if (!valid) {
+                let err = generateError('400-InvalidInput', 'PUT controller');
+                throw err;
+            }
+
+            next();
+
+
+        } else {
+
+            let err = generateError('400-Missing', 'PUT controller');
+            throw err;
+
+        }
+    } catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
+        }
+
+        console.error(`${err.statusCode} error caught in students Controller block 1`);
+
+        next(err);
+    }
+
+})
+
+
+router.put('/:student_id', async (req, res, next) => {
+
+
+    try {
+        const data = req.body;
+
+
+        //read the file to check whether the entity exists
+        let entityRecord = await getStudentModel().readStudent(req.params.student_id)
+            .catch(err => {
+                console.error('Error when waiting for promise from readStudent in PUT');
+                next(err);
+            })
+        if (!entityRecord) {
+            let err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        //appointments remain the same in an update; 
+        //only adding or removing appointments at designated endpoints can alter relationships
+        data.appointments = entityRecord.appointments;
+
+        //read the file to check whether the entity exists
+        const studentRecord = await getStudentModel().updateStudent(req.params.student_id, data)
+            .catch(err => {
+                console.error('Error when waiting for promise from updateStudent');
+                next(err);
+            })
+
+        if (!studentRecord) {
+
+            const err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        studentRecord.self = `${urlString}/students/${studentRecord.id}`;
+
+        //The URL of the updated boat must be included in the Location header
+        //res.status(303).setHeader("Location", studentRecord.self).send();
+        res.status(201).send(studentRecord);
+
+
+    } catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
+        }
+
+        console.error(`${err.statusCode} error caught in students Controller block 2`);
+
+        next(err);
+    }
+
 })
 
 /* -------------------- Delete a Student record --------------------------------------------- */
@@ -289,10 +459,15 @@ router.delete('/:student_id', async function (req, res, next) {
         if (!err.statusCode) {
 
             err.statusCode = '500';
-            next(err);
+
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
         }
-        errorResponseSwitch(err.statusCode, res);
-        console.error(`${err.statusCode} error caught in DELETE studentsController`);
+
+        console.error(`${err.statusCode} error caught in DELETE students Controller`);
+
+        next(err);
     }
 });
 

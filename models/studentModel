@@ -35,6 +35,7 @@ async function updateStudent(id, data) {
     if (id) {
         //if there's an id, then it is an update
         key = datastore.key([kind, parseInt(id, 10)]);
+        console.log(`The key is: ${key}`);
 
     } else {
         //if no id, it is a create
@@ -51,7 +52,7 @@ async function updateStudent(id, data) {
     try {
         await datastore.save(entity);
 
-        console.log(`Appt id # ${entity.key.id} updated successfully`);
+        console.log(`Student id # ${entity.key.id} updated successfully`);
 
         data.id = entity.key.id;
 
@@ -73,9 +74,13 @@ async function readStudent(id) {
         let kind = STUDENT;
 
         const key = datastore.key([kind, parseInt(id, 10)]);
-        //console.log(`The key is: ${key}`);
+        console.log(`The key is: ${key}`);
 
-        let entity = await datastore.get(key);
+        let entity = await datastore.get(key)
+            .catch(err => {
+                console.error('Error when waiting for promise reading from datastore in students Model');
+                next(err);
+            })
 
         if (typeof entity[0] !== 'undefined') {
 
