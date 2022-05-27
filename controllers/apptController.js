@@ -41,6 +41,24 @@ function getApptModel() {
     return require('../models/apptModel');
 };
 
+
+//checks that input values meet criteria
+function validInputCheck(data) {
+
+    if (data.subject) {
+        if (typeof data.subject !== 'string' && data.subject !== null) {
+            return false;
+        }
+    }
+    if (data.notes) {
+        if (typeof data.notes !== 'string' && data.notes !== null) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 const verifyJwtMiddleware = async function (req, res, next) {
 
     try {
@@ -135,10 +153,10 @@ function errorResponseSwitch(code, res) {
             break;
 
         case '400-InvalidInput':
-            res.status(400).json({ 'Error': 'Input values for one of the boat attributes is invalid' });
+            res.status(400).json({ 'Error': 'Input values for one of the appointment attributes is invalid' });
 
         case '400-BadAttribute':
-            res.status(400).json({ 'Error': 'The request object has at least one attribute that is not allowed in a boat record' });
+            res.status(400).json({ 'Error': 'The request object has at least one attribute that is not allowed in an appointment record' });
 
         case '401-Authentication':
             res.status(401).json({ 'Error': 'Authentication Error - A valid JWT must be in the Authorization header. Check that your JWT has not expired.' });
@@ -150,7 +168,7 @@ function errorResponseSwitch(code, res) {
             res.status(403).json({ 'Error': 'You cannot delete an appointment if you are not its associated tutor' });
 
         case '403-Uniqueness':
-            res.status(403).json({ 'Error': 'There is aleady a boat with this name' });
+            res.status(403).json({ 'Error': 'There is aleady an appointment with a start time in this time range - no double-booking allowed' });
 
         case '404':
             res.status(404).json({ 'Error': "No appointment with this id exists" });
@@ -169,26 +187,7 @@ function errorResponseSwitch(code, res) {
     }
 
 };
-//checks that input values meet criteria
-function validInputCheck(data) {
 
-    if (data.name) {
-        if (typeof data.name !== 'string' || data.name.length > 40) {
-            return false;
-        }
-    }
-    if (data.type) {
-        if (typeof data.type !== 'string' || data.type.length > 40) {
-            return false;
-        }
-    }
-    if (data.length) {
-        if (typeof data.length !== 'number') {
-            return false;
-        }
-    }
-    return true;
-}
 
 
 
@@ -413,6 +412,148 @@ router.get('/:appt_id', verifyJwtMiddleware, async (req, res, next) => {
     }
 })
 
+/* -------------------- Update whole appointment record ------------------------------- */
+/*
+/* -------------------- PUT /appointments/:appointment_id  -----------------------------------*/
+
+//if no appt_id is provided
+router.put('/', verifyJwtMiddleware, (req, res) => {
+
+    res.status(405).send({ 'Error': 'This operation is not supported on a list of appointment records. Use an appointment_id' })
+
+})
+
+//start with validity check
+router.put('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
+
+    try {
+
+        const tutorid = req.body.tutor;
+
+        const data = req.body;
+        let contype = req.headers['content-type'];
+        let props = ["subject", "date", "startTime", "endTime", "notes", "tutor"];
+
+        //check if req has Json content type
+        //
+        if (!contype || req.header('Content-Type') !== 'application/json') {
+
+            const err = generateError('415-UnsupportedType', 'PUT controller');
+            throw err;
+        }
+
+        //check that all required attributes are included
+        if (data.subject && data.date && data.startTime && data.endTime && data.notes) {
+
+            //check email uniqueness constraint
+            //let allStudents = await getApptModel().listAppts();
+
+
+            //need to adjust this for dataTime calculation to check if start time is outside all other appointment windows
+            /*
+            for (let appt of allAppointments.appointments) {
+                if (tutorid = data.tutor && data.date === appt.date && appt.id !== req.params.appt_id) {
+                    const err = generateError('403-Uniqueness', 'PUT controller');
+                    throw err;
+                }
+            }
+            */
+
+            //check that all properties in the data are allowed
+            for (const key in data) {
+                if (!props.includes(key)) {
+                    let err = generateError('400-BadAttribute', 'PUT controller');
+                    throw err;
+                }
+            }
+
+            //check that input is valid for all categories
+            let valid = validInputCheck(data);
+
+            if (!valid) {
+                let err = generateError('400-InvalidInput', 'PUT controller');
+                throw err;
+            }
+
+            next();
+
+        } else {
+
+            let err = generateError('400-Missing', 'PUT controller');
+            throw err;
+
+        }
+    } catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        } else {
+            errorResponseSwitch(err.statusCode, res);
+        }
+
+        console.error(`${err.statusCode} error caught in appointments Controller block 1`);
+        next(err);
+    }
+})
+
+
+router.put('/:appt_id', async (req, res, next) => {
+
+
+    try {
+        const data = req.body;
+
+        //read the file to check whether the entity exists
+        let entityRecord = await getApptModel().readAppt(req.params.appt_id)
+            .catch(err => {
+                console.error('Error when waiting for promise from readAppt in PUT');
+                next(err);
+            })
+        if (!entityRecord) {
+            let err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        //students remain the same in an update; 
+        //only adding or removing students at designated endpoints can alter relationships
+        data.students = entityRecord.students;
+
+        //read the file to check whether the entity exists
+        const apptRecord = await getApptModel().updateAppt(req.params.appt_id, data)
+            .catch(err => {
+                console.error('Error when waiting for promise from updateAppt');
+                next(err);
+            })
+
+        if (!apptRecord) {
+
+            const err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        apptRecord.self = `${urlString}/appointments/${apptRecord.id}`;
+        res.status(201).send(apptRecord);
+
+    } catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
+        }
+
+        console.error(`${err.statusCode} error caught in appointments Controller block 2`);
+
+        next(err);
+    }
+
+})
+
 
 /* -------------------- Delete an appointment --------------------------------------------- */
 
@@ -440,7 +581,7 @@ router.delete('/:appt_id', verifyJwtMiddleware, async function (req, res, next) 
                 next(err);
             })
         if (!entityRecord) {
-            let err = generateError('403-NoAppt', 'DELETE controller');
+            let err = generateError('404', 'DELETE controller');
             throw err;
         }
 
