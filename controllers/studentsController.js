@@ -78,7 +78,7 @@ function errorResponseSwitch(code, res) {
             res.status(403).json({ 'Error': 'You cannot delete an appointment if you are not its associated tutor' });
 
         case '403-Uniqueness':
-            res.status(403).json({ 'Error': 'There is aleady a student with this name' });
+            res.status(403).json({ 'Error': 'There is aleady another student with this email address. Please use a different address' });
 
         case '404':
             res.status(404).json({ 'Error': "No student with this id exists" });
@@ -132,9 +132,9 @@ function validInputCheck(data) {
 
 /* ------------- Begin Controller Functions ------------- */
 
-/* -------------------- Create an appointment ----------------------------------- */
+/* -------------------- Create a student ----------------------------------- */
 
-/* -------------------- POST /appointments ---------------------------------------*/
+/* -------------------- POST /students ---------------------------------------*/
 
 router.post('/', async (req, res, next) => {
     const data = req.body;
@@ -284,7 +284,7 @@ router.put('/', (req, res) => {
 })
 
 //start with validity check
-router.put('/:student_id', (req, res, next) => {
+router.put('/:student_id', async (req, res, next) => {
 
     try {
 
@@ -301,19 +301,18 @@ router.put('/:student_id', (req, res, next) => {
         }
 
         //check that all required attributes are included
-
         if (data.firstName && data.lastName && data.email) {
-            /*
-            //check uniqueness constraint
-            let allBoats = await getBoatModel().getBoats();
-            //if any other boats (other than the current boat) have the same name
-            for (let boat of allBoats.boats) {
-                if (boat.name === data.name && boat.id !== req.params.boat_id) {
-                    const err = generateError('403', 'PUT controller');
+
+            //check email uniqueness constraint
+            let allStudents = await getStudentModel().listStudents();
+
+            for (let student of allStudents.students) {
+                if (student.email === data.email && student.id !== req.params.student_id) {
+                    const err = generateError('403-Uniqueness', 'PUT controller');
                     throw err;
                 }
             }
-            */
+
             //check that all properties in the data are allowed
             for (const key in data) {
                 if (!props.includes(key)) {
@@ -397,6 +396,162 @@ router.put('/:student_id', async (req, res, next) => {
 
         //The URL of the updated boat must be included in the Location header
         //res.status(303).setHeader("Location", studentRecord.self).send();
+        res.status(201).send(studentRecord);
+
+
+    } catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
+        }
+
+        console.error(`${err.statusCode} error caught in students Controller block 2`);
+
+        next(err);
+    }
+
+})
+
+
+
+/* -------------------- Update partial student record - Edit ------------------------------- */
+/*
+/* -------------------- PATCH /students/:student_id  -----------------------------------*/
+
+//if no student_id is provided
+router.patch('/', (req, res) => {
+
+    res.status(405).send({ 'Error': 'This operation is not supported on a list of student records. Use a student_id' })
+
+})
+
+//start with validity check
+router.patch('/:student_id', async (req, res, next) => {
+
+    try {
+
+        const data = req.body;
+        let contype = req.headers['content-type'];
+        let props = ["firstName", "lastName", "email"];
+
+        //check if req has Json content type
+        //
+        if (!contype || req.header('Content-Type') !== 'application/json') {
+
+            const err = generateError('415-UnsupportedType', 'PUT controller');
+            throw err;
+        }
+
+        //check that at least one required attributes is included
+        if (data.firstName || data.lastName || data.email) {
+
+            //check that all properties in the data are allowed
+            for (const key in data) {
+                if (!props.includes(key)) {
+                    let err = generateError('400-BadAttribute', 'PUT controller');
+                    throw err;
+                }
+            }
+
+            if (data.email) {
+                //check email uniqueness constraint
+                let allStudents = await getStudentModel().listStudents();
+
+                for (let student of allStudents.students) {
+                    if (student.email === data.email && student.id !== req.params.student_id) {
+                        const err = generateError('403-Uniqueness', 'PUT controller');
+                        throw err;
+                    }
+                }
+            }
+
+            //check that input is valid for all categories
+            let valid = validInputCheck(data);
+
+            if (!valid) {
+                let err = generateError('400-InvalidInput', 'PUT controller');
+                throw err;
+            }
+            next();
+
+        } else {
+
+            let err = generateError('400-Missing', 'PUT controller');
+            throw err;
+
+        }
+    } catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
+        }
+
+        console.error(`${err.statusCode} error caught in students Controller block 1`);
+
+        next(err);
+    }
+
+})
+
+
+router.patch('/:student_id', async (req, res, next) => {
+
+
+    try {
+        const data = req.body;
+        let dataKeys = Object.keys(data); //an array
+
+
+        //read the file to check whether the entity exists
+        let entityRecord = await getStudentModel().readStudent(req.params.student_id)
+            .catch(err => {
+                console.error('Error when waiting for promise from readStudent in PUT');
+                next(err);
+            })
+        if (!entityRecord) {
+            let err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        //appointments remain the same in an edit 
+        //only adding or removing appointments at designated endpoints can alter relationships
+        //data.appointments = entityRecord.appointments;
+
+        for (const key in entityRecord) {
+
+            if (!dataKeys.includes(key)) {
+
+                if (key !== 'id') {
+                    data[key] = entityRecord[key];
+                }
+            }
+        }
+
+        //update the db
+        const studentRecord = await getStudentModel().updateStudent(req.params.student_id, data)
+            .catch(err => {
+                console.error('Error when waiting for promise from updateStudent');
+                next(err);
+            })
+
+        if (!studentRecord) {
+
+            const err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        studentRecord.self = `${urlString}/students/${studentRecord.id}`;
+
         res.status(201).send(studentRecord);
 
 
