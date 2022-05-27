@@ -520,7 +520,7 @@ router.put('/:appt_id', async (req, res, next) => {
         //only adding or removing students at designated endpoints can alter relationships
         data.students = entityRecord.students;
 
-        //read the file to check whether the entity exists
+        //update the db
         const apptRecord = await getApptModel().updateAppt(req.params.appt_id, data)
             .catch(err => {
                 console.error('Error when waiting for promise from updateAppt');
@@ -554,6 +554,161 @@ router.put('/:appt_id', async (req, res, next) => {
 
 })
 
+
+
+
+/* -------------------- Update partial appointment record - Edit ------------------------------- */
+/*
+/* -------------------- PATCH /appointments/:appointment_id  -----------------------------------*/
+
+//if no appt_id is provided
+router.patch('/', verifyJwtMiddleware, (req, res) => {
+
+    res.status(405).send({ 'Error': 'This operation is not supported on a list of appointment records. Use an appointment_id' })
+
+})
+
+//start with validity check
+router.patch('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
+
+    try {
+
+        const tutorid = req.body.tutor;
+        const data = req.body;
+        let contype = req.headers['content-type'];
+        let props = ["subject", "date", "startTime", "endTime", "notes", "tutor"];
+
+        //check if req has Json content type
+        //
+        if (!contype || req.header('Content-Type') !== 'application/json') {
+
+            const err = generateError('415-UnsupportedType', 'PUT controller');
+            throw err;
+        }
+
+        //check that all required attributes are included
+        if (data.subject || data.date || data.startTime || data.endTime || data.notes) {
+
+            //check email uniqueness constraint
+            //let allStudents = await getApptModel().listAppts();
+
+
+            //need to adjust this for dataTime calculation to check if start time is outside all other appointment windows
+            /*
+            for (let appt of allAppointments.appointments) {
+                if (tutorid = data.tutor && data.date === appt.date && appt.id !== req.params.appt_id) {
+                    const err = generateError('403-Uniqueness', 'PUT controller');
+                    throw err;
+                }
+            }
+            */
+
+            //check that all properties in the data are allowed
+            for (const key in data) {
+                if (!props.includes(key)) {
+                    let err = generateError('400-BadAttribute', 'PUT controller');
+                    throw err;
+                }
+            }
+
+            //check that input is valid for all categories
+            let valid = validInputCheck(data);
+
+            if (!valid) {
+                let err = generateError('400-InvalidInput', 'PUT controller');
+                throw err;
+            }
+
+            next();
+
+        } else {
+
+            let err = generateError('400-Missing', 'PUT controller');
+            throw err;
+
+        }
+    } catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        } else {
+            errorResponseSwitch(err.statusCode, res);
+        }
+
+        console.error(`${err.statusCode} error caught in appointments Controller block 1`);
+        next(err);
+    }
+})
+
+
+router.patch('/:appt_id', async (req, res, next) => {
+
+
+    try {
+        const data = req.body;
+        let dataKeys = Object.keys(data);
+
+        //read the file to check whether the entity exists
+        let entityRecord = await getApptModel().readAppt(req.params.appt_id)
+            .catch(err => {
+                console.error('Error when waiting for promise from readAppt in PUT');
+                next(err);
+            })
+        if (!entityRecord) {
+            let err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        //students remain the same in an update; 
+        //only adding or removing students at designated endpoints can alter relationships
+        //data.students = entityRecord.students;
+
+        for (const key in entityRecord) {
+
+            if (!dataKeys.includes(key)) {
+
+                if (key != 'id') {
+                    data[key] = entityRecord[key];
+                }
+            }
+        }
+
+        //update the db
+        const apptRecord = await getApptModel().updateAppt(req.params.appt_id, data)
+            .catch(err => {
+                console.error('Error when waiting for promise from updateAppt');
+                next(err);
+            })
+
+        if (!apptRecord) {
+
+            const err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        apptRecord.self = `${urlString}/appointments/${apptRecord.id}`;
+
+        res.status(201).send(apptRecord);
+
+    } catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
+        }
+
+        console.error(`${err.statusCode} error caught in appointments Controller block 2`);
+
+        next(err);
+    }
+
+})
 
 /* -------------------- Delete an appointment --------------------------------------------- */
 
