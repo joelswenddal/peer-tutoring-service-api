@@ -28,7 +28,9 @@ router.use((req, res, next) => {
 
 const APPT = "Appointments";
 const projectId = process.env.PROJECT_ID;
-const urlString = 'https://final-peertutor-1215pm.uc.r.appspot.com'
+const urlString = 'https://final-peertutor-1215pm.uc.r.appspot.com';
+
+
 const CLIENT_APP_ID = process.env.CLIENT_APP_ID;
 
 
@@ -40,6 +42,45 @@ const client = new OAuth2Client(CLIENT_APP_ID);
 function getApptModel() {
     return require('../models/apptModel');
 };
+
+//checks that a date string is correctly formatted
+function dateStringIsValid(dateString) {
+    //return /\S+@\S+\.\S+/.test(email);
+    return /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/.test(dateString);
+}
+
+//checks that time string is correctly formatted
+function timeStringIsValid(timeString) {
+
+    return /^([0-2][0-3]|[0-1][0-9]):[0-5][0-9]+$/.test(timeString);
+}
+
+//converts date string to date type
+function toDate(dateString) {
+    const [year, month, day] = dateString.split("-");
+    return new Date(year, month - 1, day);
+}
+
+//converts time string to date type
+function toTime(dateString, timeString) {
+    let now = new Date();
+    const [year, monthIndex, day] = dateString.split("-");
+    const [hours, minutes] = timeString.split(":");
+    return new Date(year, monthIndex - 1, day, hours, minutes)
+}
+//checks that time strings meet real hour and minute validity requirements
+function timeRangeIsValid(startTime, endTime) {
+    let startHour = parseInt(startTime.slice(0, 2));
+    let endHour = parseInt(endTime.slice(0, 2));
+    let startMin = parseInt(startTime.slice(3));
+    let endMin = parseInt(endTime.slice(3));
+
+    if (startHour <= endHour && endHour < 24 && startMin <= endMin && endMin < 60) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 
 //checks that input values meet criteria
@@ -55,9 +96,21 @@ function validInputCheck(data) {
             return false;
         }
     }
-
+    if (data.date) {
+        if (!dateStringIsValid(data.date)) {
+            return false;
+        }
+    }
+    if (data.startTime && data.endTime) {
+        if (!timeStringIsValid(data.startTime) || !timeStringIsValid(data.endTime)) {
+            return false;
+        }
+    }
     return true;
 }
+
+
+
 
 const verifyJwtMiddleware = async function (req, res, next) {
 
@@ -155,6 +208,9 @@ function errorResponseSwitch(code, res) {
         case '400-InvalidInput':
             res.status(400).json({ 'Error': 'Input values for one of the appointment attributes is invalid' });
 
+        case '400-InvalidTimeInput':
+            res.status(400).json({ 'Error': 'Input values for the time variables have some invalid characteristics' });
+
         case '400-BadAttribute':
             res.status(400).json({ 'Error': 'The request object has at least one attribute that is not allowed in an appointment record' });
 
@@ -191,17 +247,22 @@ function errorResponseSwitch(code, res) {
 
 
 
+
+
 /* ------------- Begin Controller Functions ------------- */
 
 /* -------------------- Create an appointment ----------------------------------- */
 
 /* -------------------- POST /appointments ---------------------------------------*/
 
-router.post('/', verifyJwtMiddleware, async (req, res, next) => {
+router.post('/', verifyJwtMiddleware, (req, res, next) => {
     try {
-        /*
+
+        const tutorid = req.body.tutor;
+
         const data = req.body;
         let contype = req.headers['content-type'];
+        let props = ["subject", "date", "startTime", "endTime", "notes", "tutor"];
 
         //check if req has Json content type
         //
@@ -211,43 +272,58 @@ router.post('/', verifyJwtMiddleware, async (req, res, next) => {
             throw err;
         }
 
-        
+        //check that all required attributes are included -- subject and notes can be set to null (an 'open' appointment)
+        //if (data.subject && data.date && data.startTime && data.endTime && data.notes) {
+        if (typeof data.subject !== 'undefined' && data.date && data.startTime && data.endTime && typeof data.notes !== 'undefined') {
+            //check email uniqueness constraint
+            //let allStudents = await getApptModel().listAppts();
 
-        //check that all required attributes are included
-        
-        if (data.name && data.type && data.length && data.owner && 'public' in data) {
 
-            //check uniqueness constraint
-            let allAppts = await getApptModel().listAppts();
-            
-            for (let appt of allAppts.appts) {
-                if (appt.name === data.name) {
-                    const err = generateError('403-Uniqueness', 'POST controller');
+            //need to adjust this for dataTime calculation to check if start time is outside all other appointment windows
+            /*
+            for (let appt of allAppointments.appointments) {
+                if (tutorid = data.tutor && data.date === appt.date && appt.id !== req.params.appt_id) {
+                    const err = generateError('403-Uniqueness', 'PUT controller');
                     throw err;
                 }
             }
-            
+            */
+
+            //check that all properties in the data are allowed
+            for (const key in data) {
+                if (!props.includes(key)) {
+                    let err = generateError('400-BadAttribute', 'POST controller');
+                    throw err;
+                }
+            }
 
             //check that input is valid for all categories
             let valid = validInputCheck(data);
-
             if (!valid) {
-                const err = generateError('400-InvalidInput', 'POST controller');
+                let err = generateError('400-InvalidInput', 'POST controller');
                 throw err;
             }
-            
+
+            valid = timeRangeIsValid(data.startTime, data.endTime);
+            if (!valid) {
+                let err = generateError('400-InvalidTimeInput', 'POST controller');
+                throw err;
+            }
+
+            //convert date string to correct date format
+            let dateString = data.date
+            data.date = toDate(data.date);
+            data.startTime = toTime(dateString, data.startTime);
+            data.endTime = toTime(dateString, data.endTime);
+
             next();
-            
 
         } else {
-            console.log(JSON.stringify(data));
-            const err = generateError('400-Missing', 'POST controller');
+
+            let err = generateError('400-Missing', 'POST controller');
             throw err;
+
         }
-        */
-        next();
-
-
     } catch (err) {
 
         if (!err.statusCode) {
@@ -255,12 +331,10 @@ router.post('/', verifyJwtMiddleware, async (req, res, next) => {
             err.statusCode = '500';
 
         } else {
-
             errorResponseSwitch(err.statusCode, res);
         }
 
-        console.error(`${err.statusCode} error caught in apptsController block 1`);
-
+        console.error(`${err.statusCode} error caught in appointments Controller block 1`);
         next(err);
     }
 })
@@ -442,9 +516,9 @@ router.put('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
             throw err;
         }
 
-        //check that all required attributes are included
-        if (data.subject && data.date && data.startTime && data.endTime && data.notes) {
-
+        //check that all required attributes are included -- subject and notes can be set to null (an 'open' appointment)
+        //if (data.subject && data.date && data.startTime && data.endTime && data.notes) {
+        if (typeof data.subject !== 'undefined' && data.date && data.startTime && data.endTime && typeof data.notes !== 'undefined') {
             //check email uniqueness constraint
             //let allStudents = await getApptModel().listAppts();
 
@@ -469,11 +543,22 @@ router.put('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
 
             //check that input is valid for all categories
             let valid = validInputCheck(data);
-
             if (!valid) {
                 let err = generateError('400-InvalidInput', 'PUT controller');
                 throw err;
             }
+
+            valid = timeRangeIsValid(data.startTime, data.endTime);
+            if (!valid) {
+                let err = generateError('400-InvalidTimeInput', 'PUT controller');
+                throw err;
+            }
+
+            //convert date string to correct date format
+            let dateString = data.date
+            data.date = toDate(data.date);
+            data.startTime = toTime(dateString, data.startTime);
+            data.endTime = toTime(dateString, data.endTime);
 
             next();
 
