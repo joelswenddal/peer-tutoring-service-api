@@ -39,6 +39,29 @@ function getApptModel() {
     return require('../models/apptModel');
 };
 
+
+function addZero(dateString) {
+
+    dateString = '0' + dateString;
+    return dateString.slice(-2);
+}
+
+
+//formats a dateTime object to just show the hour and minute string
+function dateToTimeString(dateObject) {
+
+    let result = "";
+
+    let hours = addZero(dateObject.getHours());
+    let minutes = addZero(dateObject.getMinutes());
+    let seconds = addZero(dateObject.getSeconds());
+
+    result += `${hours}:${minutes}:${seconds}`
+
+    return result;
+}
+
+
 function generateError(codeString, functionName) {
 
 
@@ -158,8 +181,13 @@ router.get('/:tutor_id/appointments', verifyJwtMiddleware, async (req, res, next
         for (let appt of allAppts.appts) {
             if (appt.tutor === tutorId) {
                 appt.self = `${urlString}/appointments/${appt.id}`;
+
+                //reformat the dateTime measure as HH:MM for readability
+                appt.startTime = dateToTimeString(appt.startTime);
+                appt.endTime = dateToTimeString(appt.endTime);
                 results.push(appt);
             }
+
         }
 
         res.status(200).send(results);

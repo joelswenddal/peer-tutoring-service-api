@@ -82,6 +82,42 @@ function timeRangeIsValid(startTime, endTime) {
     }
 }
 
+//produces a new yyyy-mm-dd formatted string for use in setting times
+function newDateString() {
+
+    let result = "";
+
+
+    let currentDate = new Date(2000, 1, 1);
+    let cDay = currentDate.getDate()
+    let cMonth = currentDate.getMonth() + 1
+    let cYear = currentDate.getFullYear()
+
+    result += `${cYear}-${cMonth}-${cDay}:`
+    return result;
+}
+
+function addZero(dateString) {
+
+    dateString = '0' + dateString;
+    return dateString.slice(-2);
+}
+
+
+//formats a dateTime object to just show the hour and minute string
+function dateToTimeString(dateObject) {
+
+    let result = "";
+
+    let hours = addZero(dateObject.getHours());
+    let minutes = addZero(dateObject.getMinutes());
+    let seconds = addZero(dateObject.getSeconds());
+
+    result += `${hours}:${minutes}:${seconds}`
+
+    return result;
+}
+
 
 //checks that input values meet criteria
 function validInputCheck(data) {
@@ -101,15 +137,18 @@ function validInputCheck(data) {
             return false;
         }
     }
-    if (data.startTime && data.endTime) {
-        if (!timeStringIsValid(data.startTime) || !timeStringIsValid(data.endTime)) {
+    if (data.startTime) {
+        if (!timeStringIsValid(data.startTime)) {
+            return false;
+        }
+    }
+    if (data.endTime) {
+        if (!timeStringIsValid(data.endTime)) {
             return false;
         }
     }
     return true;
 }
-
-
 
 
 const verifyJwtMiddleware = async function (req, res, next) {
@@ -275,19 +314,6 @@ router.post('/', verifyJwtMiddleware, (req, res, next) => {
         //check that all required attributes are included -- subject and notes can be set to null (an 'open' appointment)
         //if (data.subject && data.date && data.startTime && data.endTime && data.notes) {
         if (typeof data.subject !== 'undefined' && data.date && data.startTime && data.endTime && typeof data.notes !== 'undefined') {
-            //check email uniqueness constraint
-            //let allStudents = await getApptModel().listAppts();
-
-
-            //need to adjust this for dataTime calculation to check if start time is outside all other appointment windows
-            /*
-            for (let appt of allAppointments.appointments) {
-                if (tutorid = data.tutor && data.date === appt.date && appt.id !== req.params.appt_id) {
-                    const err = generateError('403-Uniqueness', 'PUT controller');
-                    throw err;
-                }
-            }
-            */
 
             //check that all properties in the data are allowed
             for (const key in data) {
@@ -311,7 +337,8 @@ router.post('/', verifyJwtMiddleware, (req, res, next) => {
             }
 
             //convert date string to correct date format
-            let dateString = data.date
+            let dateString = '2000-01-01';
+            //let dateString = data.date;
             data.date = toDate(data.date);
             data.startTime = toTime(dateString, data.startTime);
             data.endTime = toTime(dateString, data.endTime);
@@ -361,6 +388,10 @@ router.post('/', async (req, res, next) => {
         }
         newRecord.self = `${urlString}/appointments/${newRecord.id}`;
 
+        //reformat the dateTime measure as HH:MM for readability
+        newRecord.startTime = dateToTimeString(newRecord.startTime);
+        newRecord.endTime = dateToTimeString(newRecord.endTime);
+
         res.status(201).send(newRecord);
 
     } catch (err) {
@@ -399,6 +430,8 @@ router.get('/', verifyJwtMiddlewareNoError, async (req, res, next) => {
             for (let appt of allAppts.appts) {
                 if (appt.tutor === tutorid) {
                     appt.self = `${urlString}/appointments/${appt.id}`
+                    appt.startTime = dateToTimeString(appt.startTime);
+                    appt.endTime = dateToTimeString(appt.endTime);
                     results.push(appt);
                 }
             }
@@ -410,6 +443,8 @@ router.get('/', verifyJwtMiddlewareNoError, async (req, res, next) => {
 
             for (let appt of allAppts.appts) {
                 appt.self = `${urlString}/appointments/${appt.id}`
+                appt.startTime = dateToTimeString(appt.startTime);
+                appt.endTime = dateToTimeString(appt.endTime);
                 results.push(appt);
 
             }
@@ -460,6 +495,10 @@ router.get('/:appt_id', verifyJwtMiddleware, async (req, res, next) => {
             if (entityRecord.tutor === tutorid) {
 
                 entityRecord.self = `${urlString}/appointments/${entityRecord.id}`;
+
+                //reformat the dateTime measure as HH:MM for readability
+                entityRecord.startTime = dateToTimeString(entityRecord.startTime);
+                entityRecord.endTime = dateToTimeString(entityRecord.endTime);
 
                 res.format({
                     json: function () {
@@ -519,19 +558,6 @@ router.put('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
         //check that all required attributes are included -- subject and notes can be set to null (an 'open' appointment)
         //if (data.subject && data.date && data.startTime && data.endTime && data.notes) {
         if (typeof data.subject !== 'undefined' && data.date && data.startTime && data.endTime && typeof data.notes !== 'undefined') {
-            //check email uniqueness constraint
-            //let allStudents = await getApptModel().listAppts();
-
-
-            //need to adjust this for dataTime calculation to check if start time is outside all other appointment windows
-            /*
-            for (let appt of allAppointments.appointments) {
-                if (tutorid = data.tutor && data.date === appt.date && appt.id !== req.params.appt_id) {
-                    const err = generateError('403-Uniqueness', 'PUT controller');
-                    throw err;
-                }
-            }
-            */
 
             //check that all properties in the data are allowed
             for (const key in data) {
@@ -555,7 +581,9 @@ router.put('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
             }
 
             //convert date string to correct date format
-            let dateString = data.date
+            //let dateString = data.date
+            //let dateString = newDateString();
+            let dateString = '2000-01-01';
             data.date = toDate(data.date);
             data.startTime = toTime(dateString, data.startTime);
             data.endTime = toTime(dateString, data.endTime);
@@ -618,7 +646,13 @@ router.put('/:appt_id', async (req, res, next) => {
             throw err;
         }
 
+        //create the self url string
         apptRecord.self = `${urlString}/appointments/${apptRecord.id}`;
+
+        //reformat the dateTime measure as HH:MM for readability
+        apptRecord.startTime = dateToTimeString(apptRecord.startTime);
+        apptRecord.endTime = dateToTimeString(apptRecord.endTime);
+
         res.status(201).send(apptRecord);
 
     } catch (err) {
@@ -672,21 +706,7 @@ router.patch('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
         }
 
         //check that all required attributes are included
-        if (data.subject || data.date || data.startTime || data.endTime || data.notes) {
-
-            //check email uniqueness constraint
-            //let allStudents = await getApptModel().listAppts();
-
-
-            //need to adjust this for dataTime calculation to check if start time is outside all other appointment windows
-            /*
-            for (let appt of allAppointments.appointments) {
-                if (tutorid = data.tutor && data.date === appt.date && appt.id !== req.params.appt_id) {
-                    const err = generateError('403-Uniqueness', 'PUT controller');
-                    throw err;
-                }
-            }
-            */
+        if (typeof data.subject !== 'undefined' || data.date || data.startTime || data.endTime || typeof data.notes !== 'undefined') {
 
             //check that all properties in the data are allowed
             for (const key in data) {
@@ -702,6 +722,24 @@ router.patch('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
             if (!valid) {
                 let err = generateError('400-InvalidInput', 'PUT controller');
                 throw err;
+            }
+
+            //convert the date variable first if it is present in the new data
+            if (data.date) {
+                //let dateString = data.date
+                data.date = toDate(data.date);
+            }
+
+            //update the time variables with the new date
+            //convert date string to correct date format
+            let dateString = '2000-01-01'
+
+            if (data.startTime) {
+                data.startTime = toTime(dateString, data.startTime);
+            }
+
+            if (data.endTime) {
+                data.endTime = toTime(dateString, data.endTime);
             }
 
             next();
@@ -746,18 +784,37 @@ router.patch('/:appt_id', async (req, res, next) => {
             throw err;
         }
 
+
+
         //students remain the same in an update; 
         //only adding or removing students at designated endpoints can alter relationships
         //data.students = entityRecord.students;
-
         for (const key in entityRecord) {
 
             if (!dataKeys.includes(key)) {
 
                 if (key != 'id') {
+                    /*
+                    if (key === 'startTime') {
+                        console.log(entityRecord.startTime.getHours() + ':' + entityRecord.startTime.getMinutes());
+
+
+                    }
+                    if (key === 'endTime') {
+                        console.log(entityRecord.startTime.getHours() + ':' + entityRecord.startTime.getMinutes());
+                    }
+                    */
+
                     data[key] = entityRecord[key];
                 }
             }
+        }
+
+
+        //before updating db, check to see if any updated times (startTime, endTime) have invalid range
+        if (data.startTime >= data.endTime) {
+            let err = generateError('400-InvalidTimeInput', 'PUT controller');
+            throw err;
         }
 
         //update the db
@@ -772,8 +829,12 @@ router.patch('/:appt_id', async (req, res, next) => {
             const err = generateError('404', 'PUT controller');
             throw err;
         }
-
+        //update self url string
         apptRecord.self = `${urlString}/appointments/${apptRecord.id}`;
+
+        //reformat the dateTime measure as HH:MM for readability
+        apptRecord.startTime = dateToTimeString(apptRecord.startTime);
+        apptRecord.endTime = dateToTimeString(apptRecord.endTime);
 
         res.status(201).send(apptRecord);
 
