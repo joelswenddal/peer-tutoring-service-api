@@ -61,6 +61,19 @@ function dateToTimeString(dateObject) {
     return result;
 }
 
+//adds student self ids to the students array in an appt record
+function addSelftoStudents(studentsArray) {
+
+    //add the self link to every student associated with the appointment
+    let result = [];
+    for (let student of studentsArray) {
+        student.self = `${urlString}/students/${student.id}`;
+        result.push(student);
+    }
+
+    return result;
+}
+
 
 function generateError(codeString, functionName) {
 
@@ -185,10 +198,15 @@ router.get('/:tutor_id/appointments', verifyJwtMiddleware, async (req, res, next
                 //reformat the dateTime measure as HH:MM for readability
                 appt.startTime = dateToTimeString(appt.startTime);
                 appt.endTime = dateToTimeString(appt.endTime);
+                //add the self link to every student associated with the appointment
+                appt.students = addSelftoStudents(appt.students);
+
                 results.push(appt);
             }
 
         }
+
+
 
         res.status(200).send(results);
 

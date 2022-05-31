@@ -43,6 +43,10 @@ function getApptModel() {
     return require('../models/apptModel');
 };
 
+function getStudentModel() {
+    return require('../models/studentModel');
+};
+
 //checks that a date string is correctly formatted
 function dateStringIsValid(dateString) {
     //return /\S+@\S+\.\S+/.test(email);
@@ -114,6 +118,19 @@ function dateToTimeString(dateObject) {
     let seconds = addZero(dateObject.getSeconds());
 
     result += `${hours}:${minutes}:${seconds}`
+
+    return result;
+}
+
+//adds student self ids to the students array in an appt record
+function addSelftoStudents(studentsArray) {
+
+    //add the self link to every student associated with the appointment
+    let result = [];
+    for (let student of studentsArray) {
+        student.self = `${urlString}/students/${student.id}`;
+        result.push(student);
+    }
 
     return result;
 }
@@ -449,6 +466,10 @@ router.get('/', verifyJwtMiddlewareNoError, async (req, res, next) => {
 
             }
         }
+
+        //add the self link to every student associated with the appointment
+        //results.students = addSelftoStudents(results.students);
+
         res.status(200).send(results);
 
     } catch (err) {
@@ -499,6 +520,9 @@ router.get('/:appt_id', verifyJwtMiddleware, async (req, res, next) => {
                 //reformat the dateTime measure as HH:MM for readability
                 entityRecord.startTime = dateToTimeString(entityRecord.startTime);
                 entityRecord.endTime = dateToTimeString(entityRecord.endTime);
+
+                //add the self link to every student associated with the appointment
+                entityRecord.students = addSelftoStudents(entityRecord.students);
 
                 res.format({
                     json: function () {
@@ -652,6 +676,10 @@ router.put('/:appt_id', async (req, res, next) => {
         //reformat the dateTime measure as HH:MM for readability
         apptRecord.startTime = dateToTimeString(apptRecord.startTime);
         apptRecord.endTime = dateToTimeString(apptRecord.endTime);
+
+
+        //add the self link to every student associated with the appointment
+        apptRecord.students = addSelftoStudents(apptRecord.students);
 
         res.status(201).send(apptRecord);
 
@@ -836,6 +864,9 @@ router.patch('/:appt_id', async (req, res, next) => {
         apptRecord.startTime = dateToTimeString(apptRecord.startTime);
         apptRecord.endTime = dateToTimeString(apptRecord.endTime);
 
+        //add the self link to every student associated with the appointment
+        apptRecord.students = addSelftoStudents(apptRecord.students);
+
         res.status(201).send(apptRecord);
 
     } catch (err) {
@@ -861,7 +892,7 @@ router.patch('/:appt_id', async (req, res, next) => {
 /* -------------------- DELETE /appointments/:appt_id  -----------------------------------*/
 
 //if no appt_id is provided
-router.delete('/', (req, res) => {
+router.delete('/', verifyJwtMiddleware, (req, res) => {
 
     res.status(405).send({ 'Error': 'This operation is not supported on a list of appointments. Use a appt_id' })
 
@@ -906,6 +937,210 @@ router.delete('/:appt_id', verifyJwtMiddleware, async function (req, res, next) 
         console.error(`${err.statusCode} error caught in DELETE apptController`);
     }
 });
+
+
+/* -------------------- Add a student to an appointment ------------------------------- */
+/*
+/* -------------------- PUT /appointments/:appt_id/:student_id  -----------------------------------*/
+
+router.put('/:appt_id/:student_id', async function (req, res, next) {
+
+    //get the appointment record
+    try {
+        const data = req.body;
+
+        //read the file to check whether the entity exists
+        let apptRecord = await getApptModel().readAppt(req.params.appt_id)
+            .catch(err => {
+                console.error('Error when waiting for promise from readAppt in Controller');
+                next(err);
+            })
+        if (!apptRecord) {
+            let err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        //get the student record
+        //read the file to check whether the entity exists
+        let studentRecord = await getStudentModel().readStudent(req.params.student_id)
+            .catch(err => {
+                console.error('Error when waiting for promise from readStudent in Controller');
+                next(err);
+            })
+        if (!studentRecord) {
+            let err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+
+        //add the id of each to the other
+
+        let newAppt = {};
+        newAppt.id = apptRecord.id;
+        studentRecord.appointments.push(newAppt);
+
+        let newStudent = {};
+        newStudent.id = studentRecord.id;
+        apptRecord.students.push(newStudent);
+
+
+        //update apptRecord in the db
+
+        let updatedApptRecord = await getApptModel().updateAppt(apptRecord.id, apptRecord)
+            .catch(err => {
+                console.error('Error when waiting for promise from updateAppt');
+                next(err);
+            })
+
+        if (!updatedApptRecord) {
+
+            const err = generateError('404', 'PUT controller');
+            throw err;
+        }
+        //update self url string
+        updatedApptRecord.self = `${urlString}/appointments/${updatedApptRecord.id}`;
+
+        //reformat the dateTime measure as HH:MM for readability
+        updatedApptRecord.startTime = dateToTimeString(updatedApptRecord.startTime);
+        updatedApptRecord.endTime = dateToTimeString(updatedApptRecord.endTime);
+
+        //res.status(201).send(apptRecord);
+
+        //update the studentRecord in the db
+        let updatedStudentRecord = await getStudentModel().updateStudent(studentRecord.id, studentRecord);
+
+        if (!updatedStudentRecord) {
+
+            const err = generateError('404', 'POST controller');
+            throw err;
+        }
+
+
+        //add the self link to every student associated with the appointment
+        updatedApptRecord.students = addSelftoStudents(updatedApptRecord.students);
+
+        res.status(201).send(updatedApptRecord);
+
+    }
+    catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
+        }
+
+        console.error(`${err.statusCode} error caught in appointments Controller`);
+
+        next(err);
+
+    }
+
+})
+
+/* -------------------- Remove a student from an appointment (Deletes relationship) ------------------------------- */
+/*
+/* -------------------- DELETE /appointments/:appt_id/:student_id  -------------------------------------------------*/
+
+router.delete('/:appt_id/:student_id', async function (req, res, next) {
+
+    //get the appointment record
+    try {
+
+        //get the appointment record
+        //check whether the entity exists
+        let apptRecord = await getApptModel().readAppt(req.params.appt_id)
+            .catch(err => {
+                console.error('Error when waiting for promise from readAppt in Controller');
+                next(err);
+            })
+        if (!apptRecord) {
+            let err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        //get the student record
+        //read the file to check whether the entity exists
+        let studentRecord = await getStudentModel().readStudent(req.params.student_id)
+            .catch(err => {
+                console.error('Error when waiting for promise from readStudent in Controller');
+                next(err);
+            })
+        if (!studentRecord) {
+            let err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        let studentsArray = [];
+        let apptsArray = [];
+
+        for (let student of apptRecord.students) {
+            if (student.id !== studentRecord.id) {
+                studentsArray.push(student);
+            }
+        }
+
+        for (let appt of studentRecord.appointments) {
+            if (appt.id !== apptRecord.id) {
+                apptsArray.push(appt);
+            }
+        }
+
+        studentRecord.appointments = apptsArray;
+        apptRecord.students = studentsArray;
+
+        //update the studentRecord in the db
+        let updatedStudentRecord = await getStudentModel().updateStudent(studentRecord.id, studentRecord);
+
+        if (!updatedStudentRecord) {
+
+            const err = generateError('404', 'POST controller');
+            throw err;
+        }
+        //update the apptRecord in the db
+        let updatedApptRecord = await getApptModel().updateAppt(apptRecord.id, apptRecord)
+            .catch(err => {
+                console.error('Error when waiting for promise from updateAppt');
+                next(err);
+            })
+
+        if (!updatedApptRecord) {
+
+            const err = generateError('404', 'PUT controller');
+            throw err;
+        }
+
+        res.status(204).end();
+
+    } catch (err) {
+
+        if (!err.statusCode) {
+
+            err.statusCode = '500';
+
+        } else {
+
+            errorResponseSwitch(err.statusCode, res);
+        }
+
+        console.error(`${err.statusCode} error caught in appointments Controller`);
+
+        next(err);
+
+    }
+
+
+
+
+});
+
+
+
+
+
 
 
 /* ------------- End Controller Functions ------------- */
