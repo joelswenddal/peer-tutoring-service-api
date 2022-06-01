@@ -917,11 +917,48 @@ router.delete('/:appt_id', verifyJwtMiddleware, async function (req, res, next) 
         }
 
         if (entityRecord.tutor === tutorid) {
-            await getApptModel().deleteAppt(req.params.appt_id);
+
+
+            //remove the appointment record from any student records that its associated with
+            let studentsArr = entityRecord.students;
+
+            for (let student of studentsArr) {
+
+                let studentRecord = await getStudentModel().readStudent(student.id)
+                    .catch(err => {
+                        console.error('Error when waiting for promise from readStudent in Delete operation');
+                        next(err);
+                    })
+
+                //delete the appt id from the appointments array in the student record
+                let appointmentsArr = [];
+                if (studentRecord) {
+                    for (let appt of studentRecord.appointments) {
+                        if (appt.id !== req.params.appt_id) {
+                            appointmentsArr.push(appt);
+                        }
+                    }
+                    studentRecord.appointments = appointmentsArr;
+                }
+                //update the db
+                await getStudentModel().updateStudent(studentRecord.id, studentRecord)
+                    .catch(err => {
+                        console.error('Error when waiting for promise from updateStudent in DELETE appointment operation');
+                        next(err);
+                    })
+            }
+
+            await getApptModel().deleteAppt(req.params.appt_id)
+                .catch(err => {
+                    console.error('Error when waiting for promise from deleteAppt in DELETE appointment operation');
+                    next(err);
+                });
             res.status(204).end();
+
         } else {
 
             let err = generateError('403-NotTutor', 'DELETE controller');
+
             throw err;
         }
 
