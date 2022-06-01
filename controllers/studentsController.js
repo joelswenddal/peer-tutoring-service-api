@@ -40,6 +40,10 @@ function getStudentModel() {
     return require('../models/studentModel');
 };
 
+function getApptModel() {
+    return require('../models/apptModel');
+};
+
 //adds appointment self ids to the appointments array in an appt record
 function addSelftoAppointments(appointmentsArray) {
 
@@ -534,7 +538,6 @@ router.patch('/:student_id', async (req, res, next) => {
 
 router.patch('/:student_id', async (req, res, next) => {
 
-
     try {
         const data = req.body;
         let dataKeys = Object.keys(data); //an array
@@ -633,9 +636,40 @@ router.delete('/:student_id', async function (req, res, next) {
 
         } else {
 
-            //HERE need to get all appointments and delete all that have this student
+            //HERE need to get all appointments and delete the student from each of them
+            let appointmentsArr = entityRecord.appointments;
 
-            await getStudentModel().deleteStudent(student_id);
+            for (let appt of appointmentsArr) {
+
+                let apptRecord = await getApptModel().readAppt(appt.id)
+                    .catch(err => {
+                        console.error('Error when waiting for promise from readAppt in Delete operation');
+                        next(err);
+                    })
+
+                //delete the student id from the students array in the appt record
+                let studentsArr = [];
+                if (apptRecord) {
+                    for (let student of apptRecord.students) {
+                        if (student.id !== student_id) {
+                            studentsArr.push(student);
+                        }
+                    }
+                    apptRecord.students = studentsArr;
+                }
+                //update the db
+                await getApptModel().updateAppt(apptRecord.id, apptRecord)
+                    .catch(err => {
+                        console.error('Error when waiting for promise from updateAppt in DELETE student operation');
+                        next(err);
+                    })
+            }
+
+            await getStudentModel().deleteStudent(student_id)
+                .catch(err => {
+                    console.error('Error when waiting for promise from deleteStudent in DELETE student operation');
+                    next(err);
+                });
 
             res.status(204).end();
         }
