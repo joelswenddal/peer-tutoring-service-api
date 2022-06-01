@@ -638,7 +638,6 @@ router.put('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
 
 router.put('/:appt_id', async (req, res, next) => {
 
-
     try {
         const data = req.body;
 

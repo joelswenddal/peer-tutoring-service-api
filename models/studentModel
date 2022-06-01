@@ -35,7 +35,7 @@ async function updateStudent(id, data) {
     if (id) {
         //if there's an id, then it is an update
         key = datastore.key([kind, parseInt(id, 10)]);
-        console.log(`The key is: ${key}`);
+        //console.log(`The key is: ${key}`);
 
     } else {
         //if no id, it is a create

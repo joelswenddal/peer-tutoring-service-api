@@ -40,6 +40,19 @@ function getStudentModel() {
     return require('../models/studentModel');
 };
 
+//adds appointment self ids to the appointments array in an appt record
+function addSelftoAppointments(appointmentsArray) {
+
+    //add the self link to every student associated with the appointment
+    let result = [];
+    for (let appt of appointmentsArray) {
+        appt.self = `${urlString}/appointments/${appt.id}`;
+        result.push(appt);
+    }
+
+    return result;
+}
+
 function generateError(codeString, functionName) {
 
     let err = new Error(codeString);
@@ -195,6 +208,10 @@ router.get('/', async (req, res, next) => {
 
         for (let student of allStudents.students) {
             student.self = `${urlString}/students/${student.id}`
+
+            for (let appt of student.appointments) {
+                appt.self = `${urlString}/appointments/${appt.id}`
+            }
             results.push(student);
         }
 
@@ -248,12 +265,20 @@ router.get('/:student_id', async (req, res, next) => {
         } else {
             entityRecord.self = `${urlString}/students/${entityRecord.id}`;
 
-            res.format({
-                json: function () {
-                    res.status(200).send(entityRecord);
-                }
-            })
+            //add the self url to each appt in the appointments array of the student
+            let apptArray = [];
+            for (let appt of entityRecord.appointments) {
+                appt.self = `${urlString}/appointments/${appt.id}`
+                apptArray.push(appt);
+            }
+            entityRecord.appointments = apptArray;
         }
+
+        res.format({
+            json: function () {
+                res.status(200).send(entityRecord);
+            }
+        })
 
     } catch (err) {
 
@@ -393,6 +418,9 @@ router.put('/:student_id', async (req, res, next) => {
         }
 
         studentRecord.self = `${urlString}/students/${studentRecord.id}`;
+
+        //add the self link to every appointment associated with the student
+        studentRecord.appointments = addSelftoAppointments(studentRecord.appointments);
 
         //The URL of the updated boat must be included in the Location header
         //res.status(303).setHeader("Location", studentRecord.self).send();
@@ -551,6 +579,9 @@ router.patch('/:student_id', async (req, res, next) => {
         }
 
         studentRecord.self = `${urlString}/students/${studentRecord.id}`;
+
+        //add the self link to every appointment associated with the student
+        studentRecord.appointments = addSelftoAppointments(studentRecord.appointments);
 
         res.status(201).send(studentRecord);
 
