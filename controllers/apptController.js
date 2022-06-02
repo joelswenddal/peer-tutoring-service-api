@@ -474,6 +474,8 @@ router.get('/', verifyJwtMiddlewareNoError, async (req, res, next) => {
                         appt.self = `${urlString}/appointments/${appt.id}`;
                         appt.startTime = dateToTimeString(appt.startTime);
                         appt.endTime = dateToTimeString(appt.endTime);
+                        //add the self link to every student associated with the appointment
+                        appt.students = addSelftoStudents(appt.students);
                         apptsArr.push(appt);
                         count++;
                     }
