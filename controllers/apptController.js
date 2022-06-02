@@ -439,21 +439,65 @@ router.get('/', verifyJwtMiddlewareNoError, async (req, res, next) => {
 
         if (req.body.tutor) {
 
+            let apptsArr = [];
             let tutorid = req.body.tutor;
+            let page;
+
+            if (!req.query.page) {
+                page = 1;
+            }
+            else {
+                page = req.query.page;
+            }
+
+            let offset = (page - 1) * 5;
+            let count = 0;
+            let limCount = page * 5;
 
             //get all the appointments from the db
-            let allAppts = await getApptModel().listAppts();
+            let allAppts = await getApptModel().listAppts()
+                .catch(err => {
+                    console.error('Error when waiting for promise from listAppts');
+                    next(err);
+                })
+
+            //sort the objects ascending
+            //allAppts.sort()
 
             for (let appt of allAppts.appts) {
+
                 if (appt.tutor === tutorid) {
-                    appt.self = `${urlString}/appointments/${appt.id}`
-                    appt.startTime = dateToTimeString(appt.startTime);
-                    appt.endTime = dateToTimeString(appt.endTime);
-                    results.push(appt);
+
+                    if (count < offset) {
+                        count++;
+                    } else if (count < limCount) {
+                        appt.self = `${urlString}/appointments/${appt.id}`;
+                        appt.startTime = dateToTimeString(appt.startTime);
+                        appt.endTime = dateToTimeString(appt.endTime);
+                        apptsArr.push(appt);
+                        count++;
+                    }
+                    else {
+                        count++;
+                    }
                 }
             }
+
+            let wrapper = {};
+            wrapper.appointments = apptsArr;
+            page++;
+            wrapper.total_items = count;
+
+            //attach url to next page
+            if (apptsArr.length < 5) {
+                wrapper.next = "Final page - There are no further records";
+            } else {
+                wrapper.next = `${urlString}/appointments?page=${page}&limit=5`;
+            }
+            results.push(wrapper);
+
         }
-        //FOR DEVELOPMENT ONLY - WILL RETURN ALL APPT RECORDS WITHOUT AUTHENTICATION
+        //FOR DEVELOPMENT ONLY - WILL RETURN ALL APPT RECORDS WITHOUT AUTHENTICATION - NO PAGINATION
         else {
             //get all the appointments
             let allAppts = await getApptModel().listAppts();
