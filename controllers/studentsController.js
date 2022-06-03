@@ -250,7 +250,7 @@ router.get('/', async (req, res, next) => {
         wrapper.total_students = count;
 
         //attach url to next page
-        if (apptsArr.length < 5) {
+        if (studentsArr.length < 5) {
             wrapper.next = "Final page - There are no further records";
         } else {
             wrapper.next = `${urlString}/students?page=${page}&limit=5`;
