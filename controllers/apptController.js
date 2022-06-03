@@ -599,9 +599,7 @@ router.get('/:appt_id', verifyJwtMiddleware, async (req, res, next) => {
     } catch (err) {
 
         if (!err.statusCode) {
-
             err.statusCode = '500';
-
         }
         errorResponseSwitch(err.statusCode, res);
         console.error(`${err.statusCode} error caught in appts Controller`);
