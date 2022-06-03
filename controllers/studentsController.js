@@ -119,8 +119,6 @@ function emailIsValid(email) {
     return /\S+@\S+\.\S+/.test(email);
 }
 
-
-
 //checks that input values meet criteria
 function validInputCheck(data) {
 
@@ -147,7 +145,7 @@ function validInputCheck(data) {
 
 
 
-/* ------------- Begin Controller Functions ------------- */
+/* ------------- Begin Controller Functions -------------------------------- */
 
 /* -------------------- Create a student ----------------------------------- */
 
@@ -195,31 +193,71 @@ router.post('/', async (req, res, next) => {
 
 })
 
+/* --------------- View all students - Collection ----------------------------- */
 
-
-
-
-/* -------------------- GET /students ----------------------------------------------------*/
+/* -------------------- GET /students ------------------------------------------*/
 
 router.get('/', async (req, res, next) => {
 
     try {
 
         let results = [];
+        let studentsArr = [];
+        let page;
 
-        //get all the appointments
-        let allStudents = await getStudentModel().listStudents();
-
-        for (let student of allStudents.students) {
-            student.self = `${urlString}/students/${student.id}`
-
-            for (let appt of student.appointments) {
-                appt.self = `${urlString}/appointments/${appt.id}`
-            }
-            results.push(student);
+        if (!req.query.page) {
+            page = 1;
+        }
+        else {
+            page = req.query.page;
         }
 
+        let offset = (page - 1) * 5;
+        let count = 0;
+        let limCount = page * 5;
+
+        //get all the students from the db
+        let allStudents = await getStudentModel().listStudents()
+            .catch(err => {
+                console.error('Error when waiting for promise from listStudents');
+                next(err);
+            })
+
+        //sort the objects ascending
+        //allStudents.sort();
+
+        for (let student of allStudents.students) {
+
+            if (count < offset) {
+                count++;
+            } else if (count < limCount) {
+
+                student.self = `${urlString}/students/${student.id}`
+
+                for (let appt of student.appointments) {
+                    appt.self = `${urlString}/appointments/${appt.id}`
+                }
+                studentsArr.push(student);
+                count++;
+            } else {
+                count++;
+            }
+        }
+
+        let wrapper = {};
+        wrapper.students = studentsArr;
+        page++;
+        wrapper.total_students = count;
+
+        //attach url to next page
+        if (apptsArr.length < 5) {
+            wrapper.next = "Final page - There are no further records";
+        } else {
+            wrapper.next = `${urlString}/students?page=${page}&limit=5`;
+        }
+        results.push(wrapper);
         res.status(200).send(results);
+
 
     } catch (err) {
 

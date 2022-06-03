@@ -427,7 +427,7 @@ router.post('/', async (req, res, next) => {
 });
 
 
-/* ------ View all appts whose tutor matches the sub property in the supplied JWT ---- */
+/* ------ View all appts whose tutor matches the sub property in the supplied JWT - Collection ---- */
 
 /* -------------------- GET /appointments ----------------------------------------------------*/
 
@@ -488,7 +488,7 @@ router.get('/', verifyJwtMiddlewareNoError, async (req, res, next) => {
             let wrapper = {};
             wrapper.appointments = apptsArr;
             page++;
-            wrapper.total_items = count;
+            wrapper.total_appointments = count;
 
             //attach url to next page
             if (apptsArr.length < 5) {
@@ -651,8 +651,6 @@ router.put('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
             }
 
             //convert date string to correct date format
-            //let dateString = data.date
-            //let dateString = newDateString();
             let dateString = '2000-01-01';
             data.date = toDate(data.date);
             data.startTime = toTime(dateString, data.startTime);
@@ -1056,7 +1054,6 @@ router.put('/:appt_id/:student_id', async function (req, res, next) {
 
 
         //add the id of each to the other
-
         let newAppt = {};
         newAppt.id = apptRecord.id;
         studentRecord.appointments.push(newAppt);
