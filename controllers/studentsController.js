@@ -152,28 +152,65 @@ function validInputCheck(data) {
 /* -------------------- POST /students ---------------------------------------*/
 
 router.post('/', async (req, res, next) => {
-    const data = req.body;
+
 
     try {
 
+        const data = req.body;
+        let contype = req.headers['content-type'];
+        let props = ["firstName", "lastName", "email"];
+
         //check if req has Json content type
-        if (req.header('Content-Type') !== 'application/json') {
+        //
+        /*
+        if (!contype || req.header('Content-Type') !== 'application/json') {
 
             const err = generateError('415-UnsupportedType', 'POST controller');
             throw err;
 
         }
-
-        const newRecord = await getStudentModel().updateStudent(null, data);
-
-        if (!newRecord) {
-
-            const err = generateError('404', 'POST controller');
+        */
+        if (req.header('Accept') !== 'application/json') {
+            const err = generateError('406', 'POST controller');
             throw err;
         }
-        newRecord.self = `${urlString}/students/${newRecord.id}`;
 
-        res.status(201).send(newRecord);
+        //check that all required attributes are included
+        if (data.firstName && data.lastName && data.email) {
+
+            //check email uniqueness constraint - Read from the db first
+            let allStudents = await getStudentModel().listStudents();
+
+            for (let student of allStudents.students) {
+                if (student.email === data.email) {
+                    const err = generateError('403-Uniqueness', 'POST controller');
+                    throw err;
+                }
+            }
+
+            //check that all properties in the data are allowed
+            for (const key in data) {
+                if (!props.includes(key)) {
+                    let err = generateError('400-BadAttribute', 'PUT controller');
+                    throw err;
+                }
+            }
+
+            const newRecord = await getStudentModel().updateStudent(null, data);
+
+            if (!newRecord) {
+
+                const err = generateError('404', 'POST controller');
+                throw err;
+            }
+            newRecord.self = `${urlString}/students/${newRecord.id}`;
+
+            res.status(201).send(newRecord);
+
+        } else {
+            let err = generateError('400-Missing', 'PUT controller');
+            throw err;
+        }
 
     } catch (err) {
 
@@ -200,6 +237,11 @@ router.post('/', async (req, res, next) => {
 router.get('/', async (req, res, next) => {
 
     try {
+
+        if (req.header('Accept') !== 'application/json') {
+            const err = generateError('406', 'GET controller');
+            throw err;
+        }
 
         let results = [];
         let studentsArr = [];
@@ -285,11 +327,9 @@ router.get('/:student_id', async (req, res, next) => {
 
     try {
 
-        //check if req has Json content type
+        //check if req has Json for Accept header
         //
         if (req.header("Accept") !== 'application/json') {
-
-            console.log(`Response header is ${req.header("Accept")}`);
             const err = generateError('406', 'GET controller');
             throw err;
         }
@@ -359,11 +399,16 @@ router.put('/:student_id', async (req, res, next) => {
         let contype = req.headers['content-type'];
         let props = ["firstName", "lastName", "email"];
 
-        //check if req has Json content type
+        //check if req has Json Accept header
         //
         if (!contype || req.header('Content-Type') !== 'application/json') {
 
             const err = generateError('415-UnsupportedType', 'PUT controller');
+            throw err;
+        }
+
+        if (req.header("Accept") !== 'application/json') {
+            const err = generateError('406', 'PUT controller');
             throw err;
         }
 
@@ -425,7 +470,6 @@ router.put('/:student_id', async (req, res, next) => {
 
 
 router.put('/:student_id', async (req, res, next) => {
-
 
     try {
         const data = req.body;
@@ -513,7 +557,12 @@ router.patch('/:student_id', async (req, res, next) => {
         //
         if (!contype || req.header('Content-Type') !== 'application/json') {
 
-            const err = generateError('415-UnsupportedType', 'PUT controller');
+            const err = generateError('415-UnsupportedType', 'PATCH controller');
+            throw err;
+        }
+
+        if (req.header("Accept") !== 'application/json') {
+            const err = generateError('406', 'PUT controller');
             throw err;
         }
 
@@ -523,18 +572,18 @@ router.patch('/:student_id', async (req, res, next) => {
             //check that all properties in the data are allowed
             for (const key in data) {
                 if (!props.includes(key)) {
-                    let err = generateError('400-BadAttribute', 'PUT controller');
+                    let err = generateError('400-BadAttribute', 'PATCH controller');
                     throw err;
                 }
             }
-
+            //check email uniqueness constraint
             if (data.email) {
-                //check email uniqueness constraint
+
                 let allStudents = await getStudentModel().listStudents();
 
                 for (let student of allStudents.students) {
                     if (student.email === data.email && student.id !== req.params.student_id) {
-                        const err = generateError('403-Uniqueness', 'PUT controller');
+                        const err = generateError('403-Uniqueness', 'PATCH controller');
                         throw err;
                     }
                 }
