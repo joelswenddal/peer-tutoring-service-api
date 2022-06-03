@@ -92,6 +92,7 @@ async function startNewRecord(state) {
         data.state = state;
         data.firstName = null;
         data.lastName = null;
+        data.email = null;
         data.dateTime = new Date();
 
         const newRecord = await getAuthModel().updateState(null, data);

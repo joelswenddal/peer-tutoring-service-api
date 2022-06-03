@@ -85,6 +85,9 @@ function errorResponseSwitch(code, res) {
         case '400-BadAttribute':
             res.status(400).json({ 'Error': 'The request object has at least one attribute that is not allowed in a student record' });
 
+        case '400-NoAppointmentsAttribute':
+            res.status(400).json({ 'Error': 'Do not include the Appointments attribute in the body. Use the add/remove students from appointment endpoints.' });
+
         case '401-Authentication':
             res.status(401).json({ 'Error': 'Authentication Error - A valid JWT must be in the Authorization header. Check that your JWT has not expired.' });
 
@@ -412,6 +415,12 @@ router.put('/:student_id', async (req, res, next) => {
             throw err;
         }
 
+        //not allowed to edit the relationship
+        if (data.appointments) {
+            let err = generateError('400-NoAppointmentsAttribute', 'PATCH controller');
+            throw err;
+        }
+
         //check that all required attributes are included
         if (data.firstName && data.lastName && data.email) {
 
@@ -490,7 +499,7 @@ router.put('/:student_id', async (req, res, next) => {
         //only adding or removing appointments at designated endpoints can alter relationships
         data.appointments = entityRecord.appointments;
 
-        //read the file to check whether the entity exists
+        //update the student record
         const studentRecord = await getStudentModel().updateStudent(req.params.student_id, data)
             .catch(err => {
                 console.error('Error when waiting for promise from updateStudent');
@@ -511,7 +520,6 @@ router.put('/:student_id', async (req, res, next) => {
         //The URL of the updated boat must be included in the Location header
         //res.status(303).setHeader("Location", studentRecord.self).send();
         res.status(201).send(studentRecord);
-
 
     } catch (err) {
 
@@ -563,6 +571,12 @@ router.patch('/:student_id', async (req, res, next) => {
 
         if (req.header("Accept") !== 'application/json') {
             const err = generateError('406', 'PUT controller');
+            throw err;
+        }
+
+        //not allowed to edit the relationship in a patch
+        if (data.appointments) {
+            let err = generateError('400-NoAppointmentsAttribute', 'PATCH controller');
             throw err;
         }
 

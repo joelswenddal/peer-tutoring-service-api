@@ -270,6 +270,9 @@ function errorResponseSwitch(code, res) {
         case '400-BadAttribute':
             res.status(400).json({ 'Error': 'The request object has at least one attribute that is not allowed in an appointment record' });
 
+        case '400-NoStudentsAttribute':
+            res.status(400).json({ 'Error': 'Do not include the Students attribute in the body. Use the add/remove students from appointment endpoints.' });
+
         case '401-Authentication':
             res.status(401).json({ 'Error': 'Authentication Error - A valid JWT must be in the Authorization header. Check that your JWT has not expired.' });
 
@@ -325,6 +328,11 @@ router.post('/', verifyJwtMiddleware, (req, res, next) => {
         if (!contype || req.header('Content-Type') !== 'application/json') {
 
             const err = generateError('415-UnsupportedType', 'POST controller');
+            throw err;
+        }
+        //check accept header is JSON
+        if (req.header("Accept") !== 'application/json') {
+            const err = generateError('406', 'POST controller');
             throw err;
         }
 
@@ -388,14 +396,6 @@ router.post('/', async (req, res, next) => {
 
     try {
 
-        //check if req has Json content type
-        if (req.header('Content-Type') !== 'application/json') {
-
-            const err = generateError('415-UnsupportedType', 'POST controller');
-            throw err;
-
-        }
-
         const newRecord = await getApptModel().updateAppt(null, data);
 
         if (!newRecord) {
@@ -427,6 +427,7 @@ router.post('/', async (req, res, next) => {
 });
 
 
+
 /* ------ View all appts whose tutor matches the sub property in the supplied JWT - Collection ---- */
 
 /* -------------------- GET /appointments ----------------------------------------------------*/
@@ -434,6 +435,12 @@ router.post('/', async (req, res, next) => {
 router.get('/', verifyJwtMiddlewareNoError, async (req, res, next) => {
 
     try {
+
+        //check accept header is JSON
+        if (req.header("Accept") !== 'application/json') {
+            const err = generateError('406', 'GET controller');
+            throw err;
+        }
 
         let results = [];
 
@@ -536,6 +543,12 @@ router.get('/:appt_id', verifyJwtMiddleware, async (req, res, next) => {
 
     try {
 
+        //check accept header is JSON
+        if (req.header("Accept") !== 'application/json') {
+            const err = generateError('406', 'GET controller');
+            throw err;
+        }
+
         let tutorid = req.body.tutor;
 
         //check if req has Json content type
@@ -611,6 +624,12 @@ router.put('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
 
     try {
 
+        //check accept header is JSON
+        if (req.header("Accept") !== 'application/json') {
+            const err = generateError('406', 'PUT controller');
+            throw err;
+        }
+
         const tutorid = req.body.tutor;
 
         const data = req.body;
@@ -622,6 +641,12 @@ router.put('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
         if (!contype || req.header('Content-Type') !== 'application/json') {
 
             const err = generateError('415-UnsupportedType', 'PUT controller');
+            throw err;
+        }
+
+        //not allowed to edit the relationship in a patch
+        if (data.students) {
+            let err = generateError('400-NoStudentsAttribute', 'PATCH controller');
             throw err;
         }
 
@@ -763,6 +788,12 @@ router.patch('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
 
     try {
 
+        //check accept header is JSON
+        if (req.header("Accept") !== 'application/json') {
+            const err = generateError('406', 'PATCH controller');
+            throw err;
+        }
+
         const tutorid = req.body.tutor;
         const data = req.body;
         let contype = req.headers['content-type'];
@@ -772,7 +803,12 @@ router.patch('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
         //
         if (!contype || req.header('Content-Type') !== 'application/json') {
 
-            const err = generateError('415-UnsupportedType', 'PUT controller');
+            const err = generateError('415-UnsupportedType', 'PATCH controller');
+            throw err;
+        }
+        //not allowed to edit the relationship directly
+        if (data.students) {
+            let err = generateError('400-NoStudentsAttribute', 'PATCH controller');
             throw err;
         }
 
@@ -782,7 +818,7 @@ router.patch('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
             //check that all properties in the data are allowed
             for (const key in data) {
                 if (!props.includes(key)) {
-                    let err = generateError('400-BadAttribute', 'PUT controller');
+                    let err = generateError('400-BadAttribute', 'PATCH controller');
                     throw err;
                 }
             }
@@ -791,7 +827,7 @@ router.patch('/:appt_id', verifyJwtMiddleware, (req, res, next) => {
             let valid = validInputCheck(data);
 
             if (!valid) {
-                let err = generateError('400-InvalidInput', 'PUT controller');
+                let err = generateError('400-InvalidInput', 'PATCH controller');
                 throw err;
             }
 
@@ -844,6 +880,8 @@ router.patch('/:appt_id', async (req, res, next) => {
         const data = req.body;
         let dataKeys = Object.keys(data);
 
+        //editing
+
         //read the file to check whether the entity exists
         let entityRecord = await getApptModel().readAppt(req.params.appt_id)
             .catch(err => {
@@ -855,8 +893,6 @@ router.patch('/:appt_id', async (req, res, next) => {
             throw err;
         }
 
-
-
         //students remain the same in an update; 
         //only adding or removing students at designated endpoints can alter relationships
         //data.students = entityRecord.students;
@@ -865,22 +901,10 @@ router.patch('/:appt_id', async (req, res, next) => {
             if (!dataKeys.includes(key)) {
 
                 if (key != 'id') {
-                    /*
-                    if (key === 'startTime') {
-                        console.log(entityRecord.startTime.getHours() + ':' + entityRecord.startTime.getMinutes());
-
-
-                    }
-                    if (key === 'endTime') {
-                        console.log(entityRecord.startTime.getHours() + ':' + entityRecord.startTime.getMinutes());
-                    }
-                    */
-
                     data[key] = entityRecord[key];
                 }
             }
         }
-
 
         //before updating db, check to see if any updated times (startTime, endTime) have invalid range
         if (data.startTime >= data.endTime) {
@@ -936,9 +960,7 @@ router.patch('/:appt_id', async (req, res, next) => {
 
 //if no appt_id is provided
 router.delete('/', verifyJwtMiddleware, (req, res) => {
-
     res.status(405).send({ 'Error': 'This operation is not supported on a list of appointments. Use a appt_id' })
-
 })
 
 
@@ -961,7 +983,6 @@ router.delete('/:appt_id', verifyJwtMiddleware, async function (req, res, next) 
         }
 
         if (entityRecord.tutor === tutorid) {
-
 
             //remove the appointment record from any student records that its associated with
             let studentsArr = entityRecord.students;
@@ -1027,6 +1048,13 @@ router.put('/:appt_id/:student_id', async function (req, res, next) {
 
     //get the appointment record
     try {
+
+        //check accept header is JSON
+        if (req.header("Accept") !== 'application/json') {
+            const err = generateError('406', 'PUT controller');
+            throw err;
+        }
+
         const data = req.body;
 
         //read the file to check whether the entity exists
@@ -1192,6 +1220,8 @@ router.delete('/:appt_id/:student_id', async function (req, res, next) {
             throw err;
         }
 
+        //await remove_student_from_appointment(req.params.appt_id, req.params.student_id);
+
         res.status(204).end();
 
     } catch (err) {
@@ -1204,18 +1234,10 @@ router.delete('/:appt_id/:student_id', async function (req, res, next) {
 
             errorResponseSwitch(err.statusCode, res);
         }
-
         console.error(`${err.statusCode} error caught in appointments Controller`);
-
         next(err);
-
     }
-
-
-
-
 });
-
 
 
 
