@@ -22,8 +22,8 @@ app.set('view engine', 'hbs');
 // Fallback Middleware function for returning 
 // 404 error for undefined paths
 const invalidPathHandler = (request, response, next) => {
-  response.status(404)
-  response.send('This is not a valid path for this API. Please consult documentation');
+  response.status(405)
+  response.send('Method not allowed. This is not a valid path for this API. Please consult documentation');
 }
 
 // Error handling Middleware function for logging the error message

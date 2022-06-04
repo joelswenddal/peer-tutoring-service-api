@@ -265,7 +265,7 @@ function errorResponseSwitch(code, res) {
             res.status(400).json({ 'Error': 'Input values for one of the appointment attributes is invalid' });
 
         case '400-InvalidTimeInput':
-            res.status(400).json({ 'Error': 'Input values for the time variables have some invalid characteristics' });
+            res.status(400).json({ 'Error': 'Input values for the time variables have some invalid characteristics (e.g. start time later than end time)' });
 
         case '400-BadAttribute':
             res.status(400).json({ 'Error': 'The request object has at least one attribute that is not allowed in an appointment record' });
@@ -432,7 +432,7 @@ router.post('/', async (req, res, next) => {
 
 /* -------------------- GET /appointments ----------------------------------------------------*/
 
-router.get('/', verifyJwtMiddlewareNoError, async (req, res, next) => {
+router.get('/', verifyJwtMiddleware, async (req, res, next) => {
 
     try {
 
@@ -506,8 +506,10 @@ router.get('/', verifyJwtMiddlewareNoError, async (req, res, next) => {
             results.push(wrapper);
 
         }
-        //FOR DEVELOPMENT ONLY - WILL RETURN ALL APPT RECORDS WITHOUT AUTHENTICATION - NO PAGINATION
+        //FOR DEVELOPMENT ONLY - UNPROTECTED - WILL RETURN ALL APPT RECORDS WITHOUT AUTHENTICATION - NO PAGINATION
+        /*
         else {
+        
             //get all the appointments
             let allAppts = await getApptModel().listAppts();
 
@@ -519,7 +521,7 @@ router.get('/', verifyJwtMiddlewareNoError, async (req, res, next) => {
 
             }
         }
-
+        */
         //add the self link to every student associated with the appointment
         //results.students = addSelftoStudents(results.students);
 
@@ -891,9 +893,6 @@ router.patch('/:appt_id', async (req, res, next) => {
             throw err;
         }
 
-        //students remain the same in an update; 
-        //only adding or removing students at designated endpoints can alter relationships
-        //data.students = entityRecord.students;
         for (const key in entityRecord) {
 
             if (!dataKeys.includes(key)) {
@@ -932,7 +931,7 @@ router.patch('/:appt_id', async (req, res, next) => {
         //add the self link to every student associated with the appointment
         apptRecord.students = addSelftoStudents(apptRecord.students);
 
-        res.status(201).send(apptRecord);
+        res.status(200).send(apptRecord);
 
     } catch (err) {
 

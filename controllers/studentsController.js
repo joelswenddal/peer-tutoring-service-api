@@ -655,10 +655,6 @@ router.patch('/:student_id', async (req, res, next) => {
             throw err;
         }
 
-        //appointments remain the same in an edit 
-        //only adding or removing appointments at designated endpoints can alter relationships
-        //data.appointments = entityRecord.appointments;
-
         for (const key in entityRecord) {
 
             if (!dataKeys.includes(key)) {
@@ -687,7 +683,7 @@ router.patch('/:student_id', async (req, res, next) => {
         //add the self link to every appointment associated with the student
         studentRecord.appointments = addSelftoAppointments(studentRecord.appointments);
 
-        res.status(201).send(studentRecord);
+        res.status(200).send(studentRecord);
 
 
     } catch (err) {
