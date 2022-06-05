@@ -251,7 +251,7 @@ router.get('/:user_id/appointments', verifyJwtMiddleware, async (req, res, next)
 /* -------------------- UPDATE /users ----------------------------------------------------*/
 
 //start with validity check
-router.put('/:user_id', verifyJwtMiddleware, async (req, res, next) => {
+router.patch('/:user_id', verifyJwtMiddleware, async (req, res, next) => {
 
     try {
 

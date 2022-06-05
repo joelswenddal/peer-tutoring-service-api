@@ -163,18 +163,17 @@ router.post('/', async (req, res, next) => {
         let contype = req.headers['content-type'];
         let props = ["firstName", "lastName", "email"];
 
+
+        if (req.header('Accept') !== 'application/json') {
+            const err = generateError('406', 'POST controller');
+            throw err;
+        }
+
         //check if req has Json content type
         //
-        /*
         if (!contype || req.header('Content-Type') !== 'application/json') {
 
             const err = generateError('415-UnsupportedType', 'POST controller');
-            throw err;
-
-        }
-        */
-        if (req.header('Accept') !== 'application/json') {
-            const err = generateError('406', 'POST controller');
             throw err;
         }
 
@@ -197,6 +196,14 @@ router.post('/', async (req, res, next) => {
                     let err = generateError('400-BadAttribute', 'PUT controller');
                     throw err;
                 }
+            }
+
+            //check that input is valid for all categories
+            let valid = validInputCheck(data);
+
+            if (!valid) {
+                let err = generateError('400-InvalidInput', 'PUT controller');
+                throw err;
             }
 
             const newRecord = await getStudentModel().updateStudent(null, data);

@@ -593,7 +593,7 @@ router.get('/:appt_id', verifyJwtMiddleware, async (req, res, next) => {
 
             } else {
 
-                let err = generateError('403-NotTutor', 'DELETE controller');
+                let err = generateError('401-Authentication', 'GET controller');
                 throw err;
             }
         }
