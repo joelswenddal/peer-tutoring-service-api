@@ -7,7 +7,7 @@
 'use strict';
 
 const { Datastore } = require('@google-cloud/datastore');
-const projectId = 'final-peertutor-1215pm';
+const projectId = process.env.PROJECT_ID;
 
 module.exports.Datastore = Datastore;
 //module.exports.datastore = new Datastore();

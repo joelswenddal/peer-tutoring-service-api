@@ -1,0 +1,5953 @@
+{
+	"info": {
+		"_postman_id": "39d4bc73-ad29-43f6-a189-282867321499",
+		"name": "final_peertutor",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20240414"
+	},
+	"item": [
+		{
+			"name": "Add Appointment_1 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set boat id environment variable from response",
+							"pm.environment.set(\"appt_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.environment.set(\"tutor_id\", pm.response.json()[\"tutor\"]);",
+							"",
+							"pm.environment.set(\"user_id1\", pm.response.json()[\"tutor\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"subject\"]).to.eq(null);",
+							"   pm.expect(pm.response.json()[\"date\"]).to.eq(\"2022-02-08T00:00:00.000Z\");",
+							"   pm.expect(pm.response.json()[\"startTime\"]).to.eq(\"11:00:00\");",
+							"   pm.expect(pm.response.json()[\"endTime\"]).to.eq(\"12:00:00\");",
+							"   pm.expect(pm.response.json()[\"notes\"]).to.eq(null);",
+							"   pm.expect(pm.response.json()[\"students\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check tutor id",
+							"   const tutor = pm.environment.get(\"tutor_id\");",
+							"   pm.expect(pm.response.json()[\"tutor\"]).to.eq(tutor);",
+							"",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/appointments/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": null,\n    \"date\": \"2022-02-08\",\n    \"startTime\": \"11:00\",\n    \"endTime\": \"12:00\",\n    \"notes\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Appointment_2 400 Invalid Time Input",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"    //Check for 400 status code",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Input values for the time variables have some invalid characteristics (e.g. start time later than end time)\");",
+							"});",
+							"",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"Math 231\",\n    \"date\": \"2022-10-03\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"11:00\",\n    \"notes\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Appointment_2 401 Invalid Jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"",
+							"pm.test(\"401 status code\", function () {",
+							"    //Check for 401 status code",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Authentication Error - A valid JWT must be in the Authorization header. Check that your JWT has not expired.\");",
+							"});",
+							"",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_Jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"Math 231\",\n    \"date\": \"2022-10-03\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"11:00\",\n    \"notes\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Appointment_2 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set boat id environment variable from response",
+							"pm.environment.set(\"appt_id_2\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.environment.set(\"tutor_id_2\", pm.response.json()[\"tutor\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"subject\"]).to.eq(\"Math 231\");",
+							"   pm.expect(pm.response.json()[\"date\"]).to.eq(\"2022-10-03T00:00:00.000Z\");",
+							"   pm.expect(pm.response.json()[\"startTime\"]).to.eq(\"14:00:00\");",
+							"   pm.expect(pm.response.json()[\"endTime\"]).to.eq(\"15:00:00\");",
+							"   pm.expect(pm.response.json()[\"notes\"]).to.eq(null);",
+							"   pm.expect(pm.response.json()[\"students\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check tutor id",
+							"   const tutor = pm.environment.get(\"tutor_id\");",
+							"   pm.expect(pm.response.json()[\"tutor\"]).to.eq(tutor);",
+							"",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/appointments/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"Math 231\",\n    \"date\": \"2022-10-03\",\n    \"startTime\": \"14:00\",\n    \"endTime\": \"15:00\",\n    \"notes\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Appointment_3 400 Missing Attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"    //Check for 400 status code",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"The request object is missing at least one of the required attributes\");",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 493\",\n    \"date\": \"2022-03-21\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Appointment_3 406 Incorrect Accept Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"406 status code\", function () {",
+							"    //Check for 406 status code",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Incompatible response type request. Set Accept header to application/json\");",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 493\",\n    \"date\": \"2022-03-21\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"notes\": \"Reviewing CRUD operations\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Appointment_3 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"appt_id_3\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"subject\"]).to.eq(\"CS 493\");",
+							"   pm.expect(pm.response.json()[\"date\"]).to.eq(\"2022-03-21T00:00:00.000Z\");",
+							"   pm.expect(pm.response.json()[\"startTime\"]).to.eq(\"12:00:00\");",
+							"   pm.expect(pm.response.json()[\"endTime\"]).to.eq(\"13:00:00\");",
+							"   pm.expect(pm.response.json()[\"notes\"]).to.eq(null);",
+							"   pm.expect(pm.response.json()[\"students\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check tutor id",
+							"   const tutor = pm.environment.get(\"tutor_id\");",
+							"   pm.expect(pm.response.json()[\"tutor\"]).to.eq(tutor);",
+							"",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/appointments/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 493\",\n    \"date\": \"2022-03-21\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"notes\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Appointment_4 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"appt_id_4\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"subject\"]).to.eq(\"CS 291\");",
+							"   pm.expect(pm.response.json()[\"date\"]).to.eq(\"2022-03-21T00:00:00.000Z\");",
+							"   pm.expect(pm.response.json()[\"startTime\"]).to.eq(\"12:00:00\");",
+							"   pm.expect(pm.response.json()[\"endTime\"]).to.eq(\"13:00:00\");",
+							"   pm.expect(pm.response.json()[\"notes\"]).to.eq(null);",
+							"   pm.expect(pm.response.json()[\"students\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check tutor id",
+							"   const tutor = pm.environment.get(\"tutor_id\");",
+							"   pm.expect(pm.response.json()[\"tutor\"]).to.eq(tutor);",
+							"",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/appointments/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 291\",\n    \"date\": \"2022-03-21\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"notes\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Appointment_5 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"appt_id_5\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"subject\"]).to.eq(\"CS 344\");",
+							"   pm.expect(pm.response.json()[\"date\"]).to.eq(\"2022-03-21T00:00:00.000Z\");",
+							"   pm.expect(pm.response.json()[\"startTime\"]).to.eq(\"12:00:00\");",
+							"   pm.expect(pm.response.json()[\"endTime\"]).to.eq(\"13:00:00\");",
+							"   pm.expect(pm.response.json()[\"notes\"]).to.eq(null);",
+							"   pm.expect(pm.response.json()[\"students\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check tutor id",
+							"   const tutor = pm.environment.get(\"tutor_id\");",
+							"   pm.expect(pm.response.json()[\"tutor\"]).to.eq(tutor);",
+							"",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/appointments/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 344\",\n    \"date\": \"2022-03-21\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"notes\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Appointment_6 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"appt_id_6\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"subject\"]).to.eq(\"CS 272\");",
+							"   pm.expect(pm.response.json()[\"date\"]).to.eq(\"2022-03-21T00:00:00.000Z\");",
+							"   pm.expect(pm.response.json()[\"startTime\"]).to.eq(\"12:00:00\");",
+							"   pm.expect(pm.response.json()[\"endTime\"]).to.eq(\"13:00:00\");",
+							"   pm.expect(pm.response.json()[\"notes\"]).to.eq(null);",
+							"   pm.expect(pm.response.json()[\"students\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check tutor id",
+							"   const tutor = pm.environment.get(\"tutor_id\");",
+							"   pm.expect(pm.response.json()[\"tutor\"]).to.eq(tutor);",
+							"",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/appointments/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 272\",\n    \"date\": \"2022-03-21\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"notes\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointment_1 200",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"subject\"]).to.eq(null);",
+							"   pm.expect(pm.response.json()[\"date\"]).to.eq(\"2022-02-08T00:00:00.000Z\");",
+							"   pm.expect(pm.response.json()[\"startTime\"]).to.eq(\"11:00:00\");",
+							"   pm.expect(pm.response.json()[\"endTime\"]).to.eq(\"12:00:00\");",
+							"   pm.expect(pm.response.json()[\"notes\"]).to.eq(null);",
+							"   pm.expect(pm.response.json()[\"students\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check tutor id",
+							"   const tutor = pm.environment.get(\"tutor_id\");",
+							"   pm.expect(pm.response.json()[\"tutor\"]).to.eq(tutor);",
+							"",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/appointments/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointment_1 401 Invalid Jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    //Check for 401 status code",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Authentication Error - A valid JWT must be in the Authorization header. Check that your JWT has not expired.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointment_1 401 Another user's Jwt (Jwt2 - Must be set)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    //Check for 401 status code",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Authentication Error - A valid JWT must be in the Authorization header. Check that your JWT has not expired.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointment_1 404 Invalid id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"    //Check for 404 status code",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"No appointment with this id exists\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{invalid_appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{invalid_appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointment_1 406 Incorrect Accept Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    //Check for 406 status code",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Incompatible response type request. Set Accept header to application/json\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointments 200 Valid JWT Page 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[0][\"total_appointments\"]).to.eq(6);",
+							"   pm.expect(pm.response.json()[0][\"appointments\"].length).to.eq(5);",
+							"",
+							"   //Check if the next page url is correct",
+							"   const next_url = pm.environment.get(\"app_url\") + \"/appointments?page=2&limit=5\";",
+							"   pm.expect(pm.response.json()[0][\"next\"]).to.eq(next_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointments 200 Valid JWT Page 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[0][\"total_appointments\"]).to.eq(6);",
+							"   pm.expect(pm.response.json()[0][\"appointments\"].length).to.eq(1);",
+							"",
+							"   //Check if the next page url is correct (last page)",
+							"   pm.expect(pm.response.json()[0][\"next\"]).to.eq(\"Final page - There are no further records\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/appointments?page=2&limit=5",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "2"
+						},
+						{
+							"key": "limit",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointments 401 Valid JWT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    //Check for 401 status code",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Authentication Error - A valid JWT must be in the Authorization header. Check that your JWT has not expired.\");",
+							"}); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_Jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointments 406 Incorrect Accept Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    //Check for 406 status code",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Incompatible response type request. Set Accept header to application/json\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Appointment_1 400 Cannot edit students",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"400 status code\", function () {",
+							"    //Check for 400 status code",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Do not include the Students attribute in the body. Use the add/remove students from appointment endpoints.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 101\",\n    \"date\": \"2022-11-14\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"students\": [],\n    \"notes\": \"Student has questions about linked lists\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Appointment_1 400 Invalid Time Input",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"400 status code\", function () {",
+							"    //Check for 400 status code",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Input values for the time variables have some invalid characteristics (e.g. start time later than end time)\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 101\",\n    \"date\": \"2022-02-15\",\n    \"startTime\": \"13:00\",\n    \"endTime\": \"12:00\",\n    \"notes\": \"Student has questions about linked lists\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Appointment_1 400 Missing Attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"    //Check for 400 status code",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"The request object is missing at least one of the required attributes\");",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 101\",\n    \"date\": \"2022-11-14\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Appointment 404 Invalid ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"404 status code\", function () {",
+							"    //Check for 404 status code",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"No appointment with this id exists\");",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 101\",\n    \"date\": \"2022-11-14\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"notes\": \"Student has questions about linked lists\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{invalid_appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{invalid_appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Appointment_1 405 Missing ID in Query",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"405 status code\", function () {",
+							"    //Check for 405 status code",
+							"    pm.response.to.have.status(405);",
+							"});",
+							"",
+							"pm.test(\"405 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"This operation is not supported on a list of appointment records. Use an appointment_id\");",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 101\",\n    \"date\": \"11/14/2022\",\n    \"startTime\": \"12:00 PM\",\n    \"endTime\": \"1:00 PM\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Appointment_1 406 Incorrect Accept Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"406 status code\", function () {",
+							"    //Check for 406 status code",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Incompatible response type request. Set Accept header to application/json\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 101\",\n    \"date\": \"2022-11-14\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"notes\": \"Student has question about linked lists\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Appointment_1 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 101\",\n    \"date\": \"2022-11-14\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"notes\": \"Student has questions about linked lists\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Appointment_2 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"date\": \"2022-01-01\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"notes\": \"Student has questions about homework\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Appointment_2 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"/*",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"name\"]).to.eq(\"Mike Tyson\");",
+							"   pm.expect(pm.response.json()[\"type\"]).to.eq(\"Catamaran\");",
+							"   pm.expect(pm.response.json()[\"length\"]).to.eq(28);",
+							"   pm.expect(pm.response.json()[\"public\"]).to.eq(true);",
+							"});",
+							"*/",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"startTime\": \"12:00\",\n    \"notes\": \"Student has questions about homework\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Appointment_2 400 Cannot edit Students",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"400 status code\", function () {",
+							"   //Check if status code is 400",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Do not include the Students attribute in the body. Use the add/remove students from appointment endpoints.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"students\":[],\n    \"startTime\": \"12:00\",\n    \"notes\": \"Student has questions about homework\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Appointment_2 400 Invalid Time Input",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"    //Check for 400 status code",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Input values for the time variables have some invalid characteristics (e.g. start time later than end time)\");",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"Math 231\",\n    \"startTime\": \"13:00\",\n    \"notes\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Appointment 404 Invalid ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"404 status code\", function () {",
+							"    //Check for 404 status code",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"No appointment with this id exists\");",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"CS 101\",\n    \"date\": \"2022-11-14\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"notes\": \"Student has questions about linked lists\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{invalid_appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{invalid_appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Appointment_2 406 Incorrect Accept Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"406 status code\", function () {",
+							"    //Check for 406 status code",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Incompatible response type request. Set Accept header to application/json\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"date\": \"2022-01-01\",\n    \"startTime\": \"12:00\",\n    \"endTime\": \"13:00\",\n    \"notes\": \"Student has questions about homework\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_1 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Darth\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Vader\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"darth@starwars.org\");",
+							"   pm.expect(pm.response.json()[\"appointments\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Darth\",\n  \"lastName\": \"Vader\",\n  \"email\": \"darth@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_2 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"pm.environment.set(\"student_id_2\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Obi\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Wan Kenobi\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"quiGonJin@starwars.org\");",
+							"   pm.expect(pm.response.json()[\"appointments\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Obi\",\n  \"lastName\": \"Wan Kenobi\",\n  \"email\": \"quiGonJin@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_3 400 Missing attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"   //Check if status code is 400",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"The request object is missing at least one of the required attributes\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Bobba\",\n  \"lastName\": \"Fett\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_3 400 Bad Attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"   //Check if status code is 400",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"The request object has at least one attribute that is not allowed in a student record\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Bobba\",\n  \"lastName\": \"Fett\",\n  \"email\" : \"milleniumFalcon@starwars.org\",\n  \"age\": 43\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_3 400 Invalid Email format",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"   //Check if status code is 400",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Input values for one of the student attributes is invalid\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Bobba\",\n  \"lastName\": \"Fett\",\n  \"email\" : \"milleniumFalconstarwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_3 403 Duplicate Email",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"403 status code\", function () {",
+							"   //Check if status code is 403",
+							"   pm.response.to.have.status(403);",
+							"});",
+							"",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"There is aleady another student with this email address. Please use a different address\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Bobba\",\n  \"lastName\": \"Fett\",\n  \"email\": \"quiGonJin@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_3 406 Incorrect Accept Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"406 status code\", function () {",
+							"   //Check if status code is 406",
+							"   pm.response.to.have.status(406);",
+							"});",
+							"",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Incompatible response type request. Set Accept header to application/json\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Bobba\",\n  \"lastName\": \"Fett\",\n  \"email\": \"obiWan@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_3 415 Invalid Content-Type header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"415 status code\", function () {",
+							"   //Check if status code is 415",
+							"   pm.response.to.have.status(415);",
+							"});",
+							"",
+							"pm.test(\"415 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Server only accepts Content-Type : application/json; Request body must be formatted as JSON\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json",
+						"disabled": true
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Bobba\",\n  \"lastName\": \"Fett\",\n  \"email\" : \"milleniumFalconstarwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_3 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"pm.environment.set(\"student_id_3\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Bobba\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Fett\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"jengo@starwars.org\");",
+							"   pm.expect(pm.response.json()[\"appointments\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Bobba\",\n  \"lastName\": \"Fett\",\n  \"email\": \"jengo@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_4 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"pm.environment.set(\"student_id_4\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Emperor\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Palpatine\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"sith001@starwars.org\");",
+							"   pm.expect(pm.response.json()[\"appointments\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Emperor\",\n  \"lastName\": \"Palpatine\",\n  \"email\": \"sith001@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_5 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"pm.environment.set(\"student_id_5\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Lando\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Calrissian\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"cloudCity@starwars.org\");",
+							"   pm.expect(pm.response.json()[\"appointments\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Lando\",\n  \"lastName\": \"Calrissian\",\n  \"email\": \"cloudCity@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_6 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"pm.environment.set(\"student_id_6\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Admiral\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Ackbar\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"rebel4ever@starwars.org\");",
+							"   pm.expect(pm.response.json()[\"appointments\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Admiral\",\n  \"lastName\": \"Ackbar\",\n  \"email\": \"rebel4ever@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Student_1 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Anakin\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Skywalker\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"anakinSky@starwars.org\");",
+							"   pm.expect(pm.response.json()[\"appointments\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Anakin\",\n  \"lastName\": \"Skywalker\",\n  \"email\": \"anakinSky@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Student_1 400 Missing attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"   //Check if status code is 400",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"The request object is missing at least one of the required attributes\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"lastName\": \"Solo\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Student_1 400 Bad Attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"   //Check if status code is 400",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"The request object has at least one attribute that is not allowed in a student record\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"lastName\": \"Solo\",\n  \"email\" : \"milleniumFalcon@starwars.org\",\n  \"age\": 43\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Student_1 400 Attempt to edit Appointments",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"   //Check if status code is 400",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Do not include the Appointments attribute in the body. Use the add/remove students from appointment endpoints.\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"lastName\": \"Solo\",\n  \"email\" : \"milleniumFalcon@starwars.org\",\n  \"appointments\": []\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Student_1 400 Invalid Input - Email",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"   //Check if status code is 400",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Input values for one of the student attributes is invalid\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"lastName\": \"Solo\",\n  \"email\" : \"milleniumFalconstarwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Student_1 403 Duplicate Email",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"403 status code\", function () {",
+							"   //Check if status code is 403",
+							"   pm.response.to.have.status(403);",
+							"});",
+							"",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"There is aleady another student with this email address. Please use a different address\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"lastName\": \"Solo\",\n  \"email\": \"quiGonJin@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Student 404 Invalid Student ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"404 status code\", function () {",
+							"   //Check if status code is 404",
+							"   pm.response.to.have.status(404);",
+							"});",
+							"",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"No student with this id exists\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"lastName\": \"Solo\",\n  \"email\": \"chewy@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{invalid_student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{invalid_student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Student_1 406 Incorrect Accept Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"406 status code\", function () {",
+							"   //Check if status code is 406",
+							"   pm.response.to.have.status(406);",
+							"});",
+							"",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Incompatible response type request. Set Accept header to application/json\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Bobba\",\n  \"lastName\": \"Fett\",\n  \"email\": \"obiWan@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{student_id}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{student_id}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Student_2 400 Attempt to edit Appointments",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"   //Check if status code is 400",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Do not include the Appointments attribute in the body. Use the add/remove students from appointment endpoints.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Lea\",\n  \"lastName\": \"Skywalker\",\n  \"appointments\": []\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Student_2 400 Bad Attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"   //Check if status code is 400",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"The request object has at least one attribute that is not allowed in a student record\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"age\": 43\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Student_2 400 Invalid Input - Email",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"400 status code\", function () {",
+							"   //Check if status code is 400",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Input values for one of the student attributes is invalid\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"email\" : \"milleniumFalconstarwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Student_2 403 Duplicate Email",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"403 status code\", function () {",
+							"   //Check if status code is 403",
+							"   pm.response.to.have.status(403);",
+							"});",
+							"",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"There is aleady another student with this email address. Please use a different address\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"lastName\": \"Solo\",\n  \"email\": \"jengo@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Student 404 Invalid Student ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"404 status code\", function () {",
+							"   //Check if status code is 404",
+							"   pm.response.to.have.status(404);",
+							"});",
+							"",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"No student with this id exists\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"email\": \"chewy@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{invalid_student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{invalid_student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Student_2 406 Incorrect Accept Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"406 status code\", function () {",
+							"   //Check if status code is 406",
+							"   pm.response.to.have.status(406);",
+							"});",
+							"",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Incompatible response type request. Set Accept header to application/json\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"email\" : \"milleniumFalcon@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{student_id_2}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{student_id_2}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Student_2 415 Invalid Content-Type header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"415 status code\", function () {",
+							"   //Check if status code is 415",
+							"   pm.response.to.have.status(415);",
+							"});",
+							"",
+							"pm.test(\"415 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Server only accepts Content-Type : application/json; Request body must be formatted as JSON\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json",
+						"disabled": true
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Han\",\n  \"email\" : \"milleniumFalcon@starwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Student_2 200",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"200 status code\", function () {",
+							"   //Check if status code is 200",
+							"   pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Leia\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Skywalker\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"quiGonJin@starwars.org\");",
+							"   pm.expect(pm.response.json()[\"appointments\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Leia\",\n  \"lastName\": \"Skywalker\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all Students 200 Page 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[0][\"total_students\"]).to.eq(6);",
+							"   pm.expect(pm.response.json()[0][\"students\"].length).to.eq(5);",
+							"",
+							"   //Check if the next page url is correct",
+							"   const next_url = pm.environment.get(\"app_url\") + \"/students?page=2&limit=5\";",
+							"   pm.expect(pm.response.json()[0][\"next\"]).to.eq(next_url);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all Students 200 Page 2 Final page",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[0][\"total_students\"]).to.eq(6);",
+							"   pm.expect(pm.response.json()[0][\"students\"].length).to.eq(1);",
+							"",
+							"   //Check if the next page url is correct",
+							"   //const next_url = pm.environment.get(\"app_url\") + \"/students?page=2&limit=5\";",
+							"   pm.expect(pm.response.json()[0][\"next\"]).to.eq(\"Final page - There are no further records\");",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/students?page=2&limit=5",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "2"
+						},
+						{
+							"key": "limit",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all Students 406 Incorrect Accept Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"   //Check if status code is 406",
+							"   pm.response.to.have.status(406);",
+							"});",
+							"",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Incompatible response type request. Set Accept header to application/json\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/students",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Student_1 200",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Anakin\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Skywalker\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"anakinSky@starwars.org\");",
+							"   pm.expect(pm.response.json()[\"appointments\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Student_1 406 Incorrect Accept Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"   //Check if status code is 406",
+							"   pm.response.to.have.status(406);",
+							"});",
+							"",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Incompatible response type request. Set Accept header to application/json\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_1 to Appointment_2 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"subject\"]).to.eq(\"Math 231\");",
+							"   pm.expect(pm.response.json()[\"date\"]).to.eq(\"2022-01-01T00:00:00.000Z\");",
+							"   pm.expect(pm.response.json()[\"startTime\"]).to.eq(\"12:00:00\");",
+							"   pm.expect(pm.response.json()[\"endTime\"]).to.eq(\"13:00:00\");",
+							"   pm.expect(pm.response.json()[\"notes\"]).to.eq(\"Student has questions about homework\");",
+							"",
+							"   //Check tutor id",
+							"   const tutor = pm.environment.get(\"tutor_id\");",
+							"   pm.expect(pm.response.json()[\"tutor\"]).to.eq(tutor);",
+							"",
+							"   const studentsArray = pm.response.json()[\"students\"];",
+							"   ",
+							"   const studentId = pm.environment.get(\"student_id\");",
+							"   ",
+							"   pm.expect(studentsArray[0].id).to.eq(studentId);",
+							"",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + studentId;",
+							"   pm.expect(pm.response.json()[\"students\"][0][\"self\"]).to.equal(self_url);",
+							"   ",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json",
+						"disabled": true
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Student_1 200 - Appt Added",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Anakin\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Skywalker\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"anakinSky@starwars.org\");",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"",
+							"   const apptsArray = pm.response.json()[\"appointments\"];",
+							"   const apptId = pm.environment.get(\"appt_id_2\");",
+							"   ",
+							"   pm.expect(apptsArray[0].id).to.eq(apptId);",
+							"",
+							"    //check appointment url",
+							"   const appt_url = pm.environment.get(\"app_url\") + \"/appointments/\" + apptId;",
+							"   pm.expect(pm.response.json()[\"appointments\"][0][\"self\"]).to.equal(appt_url);",
+							"   ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_2 to Appointment_1 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"students\"].length).to.eq(2);",
+							"",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json",
+						"disabled": true
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}/{{student_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}",
+						"{{student_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_1 to Appointment_1 406 Incorrect Accept Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"   //Check if status code is 406",
+							"   pm.response.to.have.status(406);",
+							"});",
+							"",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Incompatible response type request. Set Accept header to application/json\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Anakin\",\n  \"lastName\": \"Skywalker\",\n  \"email\": \"anakinSkystarwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove Student_1 from Appointment_2 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"204 status code\", function () {",
+							"   //Check if status code is 204",
+							"   pm.response.to.have.status(204);",
+							"});",
+							"",
+							"/*",
+							"pm.test(\"content is valid\", function () {",
+							"    //Check for appropriate content including self value",
+							"    pm.expect(pm.response.json()[\"volume\"]).to.eq(5);",
+							"    pm.expect(pm.response.json()[\"item\"]).to.eq(\"LEGO Blocks\");",
+							"    pm.expect(pm.response.json()[\"creation_date\"]).to.eq(\"10/18/2021\");",
+							"    pm.expect(pm.response.json()[\"carrier\"]).to.equal(null);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/loads/\" + pm.response.json()[\"id\"];",
+							"    pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});",
+							"*/",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Anakin\",\n  \"lastName\": \"Skywalker\",\n  \"email\": \"anakinSkystarwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove Student_2 from Appointment_2 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Set appropriate environment variable for load id",
+							"//pm.environment.set(\"student_id\", pm.response.json()[\"id\"]);",
+							"",
+							"pm.test(\"204 status code\", function () {",
+							"   //Check if status code is 204",
+							"   pm.response.to.have.status(204);",
+							"});",
+							"",
+							"/*",
+							"pm.test(\"content is valid\", function () {",
+							"    //Check for appropriate content including self value",
+							"    pm.expect(pm.response.json()[\"volume\"]).to.eq(5);",
+							"    pm.expect(pm.response.json()[\"item\"]).to.eq(\"LEGO Blocks\");",
+							"    pm.expect(pm.response.json()[\"creation_date\"]).to.eq(\"10/18/2021\");",
+							"    pm.expect(pm.response.json()[\"carrier\"]).to.equal(null);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/loads/\" + pm.response.json()[\"id\"];",
+							"    pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});",
+							"*/",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Anakin\",\n  \"lastName\": \"Skywalker\",\n  \"email\": \"anakinSkystarwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}/{{student_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}",
+						"{{student_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointment_2 200 Students Removed",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"subject\"]).to.eq(\"Math 231\");",
+							"   //Check if students have been removed",
+							"   pm.expect(pm.response.json()[\"students\"]).to.deep.equal([]);",
+							"   ",
+							"   //Check tutor id",
+							"   const tutor = pm.environment.get(\"tutor_id\");",
+							"   pm.expect(pm.response.json()[\"tutor\"]).to.eq(tutor);",
+							"",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/appointments/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Student_1 200 - Appt Removed",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all User's Appointments 200 (Appointments for this Tutor)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json().length).to.eq(6);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/users/{{user_id1}}/appointments",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"users",
+						"{{user_id1}}",
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_1 to Appointment_1 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json",
+						"disabled": true
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Anakin\",\n  \"lastName\": \"Skywalker\",\n  \"email\": \"anakinSkystarwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_2 to Appointment_1 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json",
+						"disabled": true
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Anakin\",\n  \"lastName\": \"Skywalker\",\n  \"email\": \"anakinSkystarwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}/{{student_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}",
+						"{{student_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Student_3 to Appointment_1 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"   //Check if status code is 201",
+							"   pm.response.to.have.status(201);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json",
+						"disabled": true
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Anakin\",\n  \"lastName\": \"Skywalker\",\n  \"email\": \"anakinSkystarwars.org\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}/{{student_id_3}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}",
+						"{{student_id_3}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointment_1 200 All Added",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"students\"].length).to.eq(3);",
+							"",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Student_1 200 Appt added",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Anakin\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Skywalker\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"anakinSky@starwars.org\");",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"",
+							"   const apptsArray = pm.response.json()[\"appointments\"];",
+							"   const apptId = pm.environment.get(\"appt_id\");",
+							"   ",
+							"   pm.expect(apptsArray[0].id).to.eq(apptId);",
+							"",
+							"    //check appointment url",
+							"   const appt_url = pm.environment.get(\"app_url\") + \"/appointments/\" + apptId;",
+							"   pm.expect(pm.response.json()[\"appointments\"][0][\"self\"]).to.equal(appt_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Appointment_1 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointment_1 404 No record (deleted)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"    //Check for 404 status code",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"No appointment with this id exists\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Student_1 200 Appt removed",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Anakin\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Skywalker\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"anakinSky@starwars.org\");",
+							"   pm.expect(pm.response.json()[\"appointments\"]).to.deep.eq([]);",
+							"   ",
+							"   //Check if the self url is correct",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/students/\" + pm.response.json()[\"id\"];",
+							"   pm.expect(pm.response.json()[\"self\"]).to.eq(self_url);",
+							"",
+							"   //const apptsArray = pm.response.json()[\"appointments\"];",
+							"   //const apptId = pm.environment.get(\"appt_id\");",
+							"   //pm.expect(apptsArray[0].id).to.eq(apptId);",
+							"",
+							"    //check appointment url",
+							"   //const appt_url = pm.environment.get(\"app_url\") + \"/appointments/\" + apptId;",
+							"   //pm.expect(pm.response.json()[\"appointments\"][0][\"self\"]).to.equal(appt_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Appointment_2 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Appointment_2 404 No Record (Deleted)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"    //Check for 404 status code",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"No appointment with this id exists\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Appointment_3 401 Invalid Jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    //Check for 401 status code",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq(\"Authentication Error - A valid JWT must be in the Authorization header. Check that your JWT has not expired.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_3}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_3}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Appointment_3 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_3}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_3}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Appointment_4 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_4}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_4}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Appointment_5 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_5}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_5}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Appointment_6 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/appointments/{{appt_id_6}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"appointments",
+						"{{appt_id_6}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Student_1 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Student_2 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Student_3 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id_3}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id_3}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Student_4 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id_4}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id_4}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Student_5 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id_5}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id_5}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Student_6 204",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/students/{{student_id_6}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"students",
+						"{{student_id_6}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Users 200",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/users",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User 201",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    //Check for 201 status code",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"   //Check if the response content is valid and matches the expected values",
+							"   pm.expect(pm.response.json()[\"firstName\"]).to.eq(\"Joel\");",
+							"   pm.expect(pm.response.json()[\"lastName\"]).to.eq(\"Swenddal\");",
+							"   pm.expect(pm.response.json()[\"email\"]).to.eq(\"testmail@gmail.com\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"content-type": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"firstName\": \"Joel\",\n    \"lastName\": \"Swenddal\",\n    \"email\": \"testmail@gmail.com\"\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/users/{{user_id1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"users",
+						"{{user_id1}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
