@@ -11,9 +11,10 @@ Developing the application gave me experience in setting up authorization/authen
 
 ## Technology
 Node.js server with Express
-Google Datastore
 
-## API Spec
+Google Cloud Datastore
+
+## Full API Spec
 [Peer Tutoring API Spec Document (PDF)](./swenddaj_project.pdf).
 
 
